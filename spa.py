@@ -12,10 +12,14 @@ class Spa:
 
     def enter_sauna(self,client):
         with self.saunas_lock:
+            sauna = None
             for i in self.saunas:
                 if not i.is_occupied:
-                    i.sauna_session(client,i.id)
-                    return
+                    sauna = i
+                    break
+        if sauna:
+            sauna.sauna_session(client,sauna.id)
+            return
         print(f"client {client.id} could not enter sauna all of them were full")
 
     def do_massage(self,client):
@@ -35,6 +39,10 @@ class Spa:
                     m.is_available = False
                     masseuse = m
                     break
+
+            if room is None or masseuse is None:
+                print(f"client {client.id} could not start a massage — no room or masseuse available")
+                return
 
         session = MassageSession(random.randint(1,1000),room,client,masseuse)
         session.start_session()
@@ -121,7 +129,7 @@ def main():
         massageroomz.append(MassageRoom(i,spa))
     spa.massage_rooms = massageroomz
 
-    clients = [Client(i, spa) for i in range(1, 6)]
+    clients = [Client(i, spa) for i in range(1, 40)]
 
     for i in clients:
         t = threading.Thread(target=i.gotospa)
