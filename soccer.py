@@ -24,19 +24,24 @@ class SoccerPitch:
         print(f"Client {client.id} tried to play a soccer match, but teams are full")
 
     def start_match(self):
-        with self.teamA_lock and self.teamB_lock:
-            if len(self.teamA)==7 and len(self.teamB)==7:
-                self.players = self.teamA + self.teamB
-                match = Match(self.teamA,self.teamB)
-                print("AND MATCH BEGINS!!!!!!!")
-
-                timer_thread = threading.Thread(target=match.timer)
-                timer_thread.start()
-
-                random.shuffle(self.players)
-                for p in self.players:
-                    p = threading.Thread(target=match.play, args = (p,))
-                    p.start()
+        while True:
+            with self.teamA_lock and self.teamB_lock:
+                if len(self.teamA)==7 and len(self.teamB)==7:
+                    self.players = self.teamA + self.teamB
+                    match = Match(self.teamA,self.teamB)
+                    print("AND MATCH BEGINS!!!!!!!")
+    
+                    timer_thread = threading.Thread(target=match.timer)
+                    timer_thread.start()
+    
+                    random.shuffle(self.players)
+                    for p in self.players:
+                        p = threading.Thread(target=match.play, args = (p,))
+                        p.start()
+                        break
+                else:
+                    pass
+            time.sleep(0.2
 
 class Match:
     def __init__(self,teamA,teamB):
