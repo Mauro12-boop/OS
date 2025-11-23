@@ -4,14 +4,29 @@ import time
 
 
 class Client:
-    def _init_(self, id):
+    def _init_(self, id, alley=None, snack_bar=None):
         self.id = id
+        self.alley = alley
+        self.snack_bar = snack_bar
+        self.assigned = False
+        self.finished_event = None
+
 
         # One dictionary per client to store everything they did
         self.history = {
             "client_id": self.id,
-            "activities": []   # list of activity dicts
+            "activities": []  # list of activity dicts
         }
+
+        def log_activity(self, amenity, action, success, info=""):
+            activity = {
+                "amenity": amenity,
+                "action": action,
+                "success": int(success),  # 1 or 0 (SQLite-friendly)
+                "info": info,
+                "timestamp": time.time()
+            }
+            self.history["activities"].append(activity)
 
     def log_activity(self, amenity, action, success, info=""):
 
@@ -113,6 +128,20 @@ class Client:
                 else:
                     print(f"client {self.id} successfully entered recreation pool")
         elif amenity_roulette == 9:
+            self.amenity_instance = amenity_instances[8]
+            purchase_timing = random.choice(["none", "before", "after"])
+            if purchase_timing == "before":
+                # Buy a snack before bowling
+                self.amenity_instance[1].purchase(self.id)
+
+            # Request a lane (this may block until a lane/group is available)
+            self.amenity_instance[0].request_lane(self)  # <-- ALWAYS runs (outside the ifs)
+
+            if purchase_timing == "after":
+                # Buy a snack after finishing bowling
+                self.amenity_instance[1].purchase(self.id)
+        elif amenity_roulette == 10:
+            pass
 
 
 
@@ -212,10 +241,11 @@ def main():
     pool = SwimmingPool()
 
     #bowling
-
+    alley = BowlingAlley(num_lanes=10)
+    snack_bar = SnackBar()
 
     #Compilation of all amenities created
-    amenity_instances = [reception,equestrianclub,spa,soccerpitch,gym,cafeteria,golfcourse,pool]
+    amenity_instances = [reception,equestrianclub,spa,soccerpitch,gym,cafeteria,golfcourse,pool,[alley,snack_bar]]
 
     # create and start clients
     clients = [Client(i) for i in range(1, 300)]
