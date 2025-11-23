@@ -15,13 +15,32 @@ class SoccerPitch:
         with self.teamA_lock:
             if len(self.teamA)<7:
                 self.teamA.append(client)
+                client.log_activity(
+                    amenity="Soccer",
+                    action="Join a Team",
+                    success=True,
+                    info="Joined team A"
+                )
                 return
 
         with self.teamB_lock:
             if len(self.teamB)<7:
                 self.teamB.append(client)
+                client.log_activity(
+                    amenity="Soccer",
+                    action="Join a Team",
+                    success=True,
+                    info="Joined team B"
+                )
                 return
         print(f"Client {client.id} tried to play a soccer match, but teams are full")
+        client.log_activity(
+            amenity="Soccer",
+            action="Join a Team",
+            success=False,
+            info="Teams are full"
+        )
+        return
 
     def start_match(self):
         while True:
@@ -74,10 +93,22 @@ class Match:
                         self.teamA_score = self.teamA_score + 1
                         print(f"Client {player.id} has just scored a goal for team A")
                         print(f'The score is now {self.teamA_score} for team A and {self.teamB_score} for team B')
+                        player.log_activity(
+                            amenity="Soccer",
+                            action="Shot",
+                            success=True,
+                            info="Scored a goal"
+                        )
                     else:
                         self.teamB_score = self.teamB_score + 1
                         print(f"Client {player.id} has just scored a goal for team B")
                         print(f'The score is now {self.teamA_score} for team A and {self.teamB_score} for team B')
+                        player.log_activity(
+                            amenity="Soccer",
+                            action="Shot",
+                            success=True,
+                            info="Scored a goal"
+                        )
             time.sleep(2)
         return
 
