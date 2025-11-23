@@ -21,6 +21,13 @@ class Spa:
             sauna.sauna_session(client,sauna.id)
             return
         print(f"client {client.id} could not enter sauna all of them were full")
+        client.log_activity(
+            amenity="Spa Sauna",
+            action="Join Sauna",
+            success=False,
+            info=f"Could not join sauna"
+        )
+        return
 
     def do_massage(self,client):
         with self.massage_lock:
@@ -42,6 +49,12 @@ class Spa:
 
             if room is None or masseuse is None:
                 print(f"client {client.id} could not start a massage — no room or masseuse available")
+                client.log_activity(
+                    amenity="Spa massage",
+                    action="Join massage",
+                    success=False,
+                    info=f"Could not join massage"
+                )
                 return
 
         session = MassageSession(random.randint(1,1000),room,client,masseuse)
@@ -77,6 +90,13 @@ class MassageSession:
             self.room.client = None
             self.masseuse.is_available = True
         print(f'client {self.client.id} has ended a massage session with masseuse {self.masseuse.id} in room {self.room.id}')
+        self.client.log_activity(
+            amenity="Spa massage",
+            action="Join massage",
+            success=True,
+            info=f"masseuse {self.masseuse.id},room {self.room.id}"
+        )
+        return
 
 class SaunaRoom:
     def __init__(self, id,spa):
@@ -98,6 +118,13 @@ class SaunaRoom:
             self.is_occupied = False
             self.client = None
         print(f'client {client.id} has ended a sauna session in sauna room {room}')
+        client.log_activity(
+            amenity="Spa sauna",
+            action="Join sauna",
+            success=True,
+            info=f"Sauna room {room}"
+        )
+        return
 
 class Client:
     def __init__(self, id,spa):
