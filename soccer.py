@@ -60,7 +60,7 @@ class SoccerPitch:
                         break
                 else:
                     pass
-            time.sleep(0.2
+            time.sleep(0.2)
 
 class Match:
     def __init__(self,teamA,teamB):
