@@ -40,6 +40,12 @@ class EquestrianClub:
 
             if not horse or not track:
                 print(f'Cliet {client.id} was not able to do an equestrian activity, no horse or track available')
+                client.log_activity(
+                    amenity="Equestrian dressage",
+                    action="Ride Horse",
+                    success=False,
+                    info="No horse or track available"
+                )
                 return
 
             if horse and track:
@@ -68,6 +74,12 @@ class EquestrianClub:
 
             if not horse or not track:
                 print(f'Cliet {client.id} was not able to do an equestrian activity, no horse or track available')
+                client.log_activity(
+                    amenity="Equestrian Showjumping",
+                    action="Ride Horse",
+                    success=False,
+                    info="No horse or track available"
+                )
                 return
 
             practice =  EquestrianSession(random.randint(1,1000),track,client,horse)
@@ -107,6 +119,13 @@ class EquestrianSession:
             self.track.clients.remove(self.client)
             self.horse.being_used = False
         print(f'Client {self.client.id} has ended a {type} session with horse {self.horse.id} in track {self.track.id}')
+        self.client.log_activity(
+            amenity="Equestrian dressage",
+            action="Ride Horse",
+            success=True,
+            info=f"Rode horse {self.horse.id}"
+        )
+        return
 
 
     def start_showjumping_session(self):
@@ -118,6 +137,13 @@ class EquestrianSession:
             self.track.clients.remove(self.client)
             self.horse.being_used = False
         print(f'Client {self.client.id} has ended a {type} session with horse {self.horse.id} in track {self.track.id}')
+        self.client.log_activity(
+            amenity="Equestrian Showjumping",
+            action="Ride Horse",
+            success=True,
+            info=f"Rode horse {self.horse.id}"
+        )
+        return
 
 
 
