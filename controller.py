@@ -4,7 +4,7 @@ import time
 
 
 class Client:
-    def _init_(self, id, alley=None, snack_bar=None):
+    def __init__(self, id, alley=None, snack_bar=None):
         self.id = id
         self.alley = alley
         self.snack_bar = snack_bar
