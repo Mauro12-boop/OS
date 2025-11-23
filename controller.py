@@ -18,24 +18,13 @@ class Client:
             "activities": []  # list of activity dicts
         }
 
-        def log_activity(self, amenity, action, success, info=""):
-            activity = {
-                "amenity": amenity,
-                "action": action,
-                "success": int(success),  # 1 or 0 (SQLite-friendly)
-                "info": info,
-                "timestamp": time.time()
-            }
-            self.history["activities"].append(activity)
-
     def log_activity(self, amenity, action, success, info=""):
 
         activity = {
             "amenity": amenity,
             "action": action,
             "success": int(success),  # 1 or 0 (SQLite-friendly)
-            "info": info,
-            "timestamp": time.time()
+            "info": info
         }
         self.history["activities"].append(activity)
 
