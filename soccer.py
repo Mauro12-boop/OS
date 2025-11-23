@@ -97,7 +97,7 @@ class Match:
                             amenity="Soccer",
                             action="Shot",
                             success=True,
-                            info="Scored a goal"
+                            info="Scored a goal for team A"
                         )
                     else:
                         self.teamB_score = self.teamB_score + 1
@@ -107,7 +107,7 @@ class Match:
                             amenity="Soccer",
                             action="Shot",
                             success=True,
-                            info="Scored a goal"
+                            info="Scored a goal for team B"
                         )
             time.sleep(2)
         return
