@@ -123,7 +123,7 @@ class EquestrianSession:
             amenity="Equestrian dressage",
             action="Ride Horse",
             success=True,
-            info=f"Rode horse {self.horse.id}"
+            info=f"Rode horse {self.horse.id}, Track {self.track.id}"
         )
         return
 
@@ -141,7 +141,7 @@ class EquestrianSession:
             amenity="Equestrian Showjumping",
             action="Ride Horse",
             success=True,
-            info=f"Rode horse {self.horse.id}"
+            info=f"Rode horse {self.horse.id}, Track {self.track.id}"
         )
         return
 
