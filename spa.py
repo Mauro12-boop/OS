@@ -126,44 +126,6 @@ class SaunaRoom:
         )
         return
 
-class Client:
-    def __init__(self, id,spa):
-        self.id = id
-        self.spa = spa
-
-    def gotospa(self):
-        coin = random.randint(1,2)
-        if coin == 1:
-            self.spa.enter_sauna(self)
-        else:
-            self.spa.do_massage(self)
-
-def main():
-    spa = Spa()
-
-    saunas = []
-    for i in range(1,6):
-        saunas.append(SaunaRoom(i,spa))
-    spa.saunas = saunas
-
-    masseuses = []
-    for i in range(1,6):
-        masseuses.append(Masseuse(i))
-    spa.masseuses = masseuses
-
-    massageroomz = []
-    for i in range(1,6):
-        massageroomz.append(MassageRoom(i,spa))
-    spa.massage_rooms = massageroomz
-
-    clients = [Client(i, spa) for i in range(1, 40)]
-
-    for i in clients:
-        t = threading.Thread(target=i.gotospa)
-        t.start()
-
-if __name__ == "__main__":
-    main()
 
 
 

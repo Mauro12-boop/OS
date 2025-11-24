@@ -10,6 +10,8 @@ class SoccerPitch:
         self.teamB = []
         self.teamB_lock = threading.Lock()
         self.players = []
+        self.match_counter = 1
+        self.match_counter_lock = threading.Lock()
 
     def join_a_team(self,client):
         with self.teamA_lock:
@@ -47,9 +49,11 @@ class SoccerPitch:
             with self.teamA_lock and self.teamB_lock:
                 if len(self.teamA)==7 and len(self.teamB)==7:
                     self.players = self.teamA + self.teamB
-                    match = Match(self.teamA,self.teamB)
-                    print("AND MATCH BEGINS!!!!!!!")
-    
+                    with self.match_counter_lock:
+                        match = Match(self.teamA,self.teamB,self.match_counter)
+                        print(f"AND MATCH {self.match_counter} BEGINS!!!!!!!")
+                        self.match_counter = self.match_counter+1
+
                     timer_thread = threading.Thread(target=match.timer)
                     timer_thread.start()
     
@@ -63,7 +67,7 @@ class SoccerPitch:
             time.sleep(0.2)
 
 class Match:
-    def __init__(self,teamA,teamB):
+    def __init__(self,teamA,teamB,match_id):
         self.ball = threading.Lock()
         self.teamA = teamA
         self.teamB = teamB
@@ -71,6 +75,7 @@ class Match:
         self.teamA_score = 0
         self.teamB_score = 0
         self.going = True
+        self.match_id = match_id
 
     def timer(self):
         t_end = time.time() + 90
@@ -80,8 +85,8 @@ class Match:
         self.going = False
         time.sleep(2)
         print()
-        print("END OF MATCH!!!!!!!!!")
-        print(f"The final score was {self.teamA_score} for team A and {self.teamB_score} for team B")
+        print(f"END OF MATCH {self.match_id} !!!!!!!!!")
+        print(f"The final score was {self.teamA_score} for team A and {self.teamB_score} for team B in match {self.match_id}")
 
     def play(self,player):
         while self.going:
@@ -92,7 +97,7 @@ class Match:
                     if player in self.teamA:
                         self.teamA_score = self.teamA_score + 1
                         print(f"Client {player.id} has just scored a goal for team A")
-                        print(f'The score is now {self.teamA_score} for team A and {self.teamB_score} for team B')
+                        print(f'The score is now {self.teamA_score} for team A and {self.teamB_score} for team B in match {self.match_id}')
                         player.log_activity(
                             amenity="Soccer",
                             action="Shot",
@@ -101,8 +106,8 @@ class Match:
                         )
                     else:
                         self.teamB_score = self.teamB_score + 1
-                        print(f"Client {player.id} has just scored a goal for team B")
-                        print(f'The score is now {self.teamA_score} for team A and {self.teamB_score} for team B')
+                        print(f"Client {player.id} has just scored a goal for team B in match {self.match_id}")
+                        print(f'The score is now {self.teamA_score} for team A and {self.teamB_score} for team B in match {self.match_id}')
                         player.log_activity(
                             amenity="Soccer",
                             action="Shot",
@@ -111,52 +116,3 @@ class Match:
                         )
             time.sleep(2)
         return
-
-
-class Client:
-    def __init__(self,id,soccerpitch):
-        self.id = id
-        self.soccerpitch = soccerpitch
-
-    def request_a_match(self):
-        self.soccerpitch.join_a_team(self)
-
-
-def main():
-
-    soccerpitch = SoccerPitch()
-
-    clients = [Client(i, soccerpitch) for i in range(1, 20)]
-
-    for i in clients:
-        t = threading.Thread(target=i.request_a_match)
-        t.start()
-
-    soccerpitch.start_match()
-
-if __name__ == "__main__":
-    main()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

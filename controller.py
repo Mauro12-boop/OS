@@ -1,6 +1,10 @@
 import random
 import threading
 import time
+from administrativeoffice import Reception, Receptionist, ReceptionSession
+from equestrian import EquestrianClub,Tracks,Horse,EquestrianSession
+from spa import Spa,Masseuse,MassageRoom,MassageSession,SaunaRoom
+from soccer import SoccerPitch, Match
 
 
 class Client:
@@ -31,7 +35,7 @@ class Client:
 
 
     def random_selector(self,amenity_instances):
-        amenity_roulette = random.randint(1,1)
+        amenity_roulette = random.randint(1,4)
         #addd loop so that it runs forever
         if amenity_roulette ==1:
             self.amenity_instance = amenity_instances[0]
@@ -135,8 +139,6 @@ class Client:
 
 
 
-
-
 def main():
 
     #Creating instances of Necessary objects
@@ -188,60 +190,64 @@ def main():
 
     soccerpitch = SoccerPitch()
 
-    #Gym
-
-    gym = Gym()
-
-    individual_spots = []
-    for i in range(1, 20):
-        individual_spots.append(IndividualSpot(i, gym))
-    gym.individual_spots = individual_spots
-
-    trainers = []
-    for i in range(1, 4):
-        trainers.append(Trainer(i))
-    gym.trainers = trainers
-
-    #Cafeteria
-
-    cafeteria = Cafeteria()
-    servers = []  # create servers (critical resource)
-    for i in range(1, 4):  # 3 servers
-        servers.append(Server(i))
-    cafeteria.servers = servers
-    cafeteria.menu = [ # menu with limited stock (critical resource)
-        FoodItem("sandwich", 10),
-        FoodItem("salad", 8),
-        FoodItem("pizza", 6),
-        FoodItem("pasta", 5),
-    ]
-
-    #Golf
-
-    golfcourse = GolfCourse()
-    holes = [Hole(i, golfcourse) for i in range(1, 10)] #Create 9 holes (typical golf course may have 9 or 18 holes)
-    golfcourse.holes = holes
-    carts = [Cart(i) for i in range(1, 6)] # Create 5 golf carts (limited number of carts available)
-    golfcourse.carts = carts
-    range_slots = [RangeSlot(i, golfcourse) for i in range(1, 6)] #Create 5 driving range slots for practice at the driving range
-    golfcourse.range_slots = range_slots
-
-    #swimming pool
-    pool = SwimmingPool()
-
-    #bowling
-    alley = BowlingAlley(num_lanes=10)
-    snack_bar = SnackBar()
+    # #Gym
+    #
+    # gym = Gym()
+    #
+    # individual_spots = []
+    # for i in range(1, 20):
+    #     individual_spots.append(IndividualSpot(i, gym))
+    # gym.individual_spots = individual_spots
+    #
+    # trainers = []
+    # for i in range(1, 4):
+    #     trainers.append(Trainer(i))
+    # gym.trainers = trainers
+    #
+    # #Cafeteria
+    #
+    # cafeteria = Cafeteria()
+    # servers = []  # create servers (critical resource)
+    # for i in range(1, 4):  # 3 servers
+    #     servers.append(Server(i))
+    # cafeteria.servers = servers
+    # cafeteria.menu = [ # menu with limited stock (critical resource)
+    #     FoodItem("sandwich", 10),
+    #     FoodItem("salad", 8),
+    #     FoodItem("pizza", 6),
+    #     FoodItem("pasta", 5),
+    # ]
+    #
+    # #Golf
+    #
+    # golfcourse = GolfCourse()
+    # holes = [Hole(i, golfcourse) for i in range(1, 10)] #Create 9 holes (typical golf course may have 9 or 18 holes)
+    # golfcourse.holes = holes
+    # carts = [Cart(i) for i in range(1, 6)] # Create 5 golf carts (limited number of carts available)
+    # golfcourse.carts = carts
+    # range_slots = [RangeSlot(i, golfcourse) for i in range(1, 6)] #Create 5 driving range slots for practice at the driving range
+    # golfcourse.range_slots = range_slots
+    #
+    # #swimming pool
+    # pool = SwimmingPool()
+    #
+    # #bowling
+    # alley = BowlingAlley(num_lanes=10)
+    # snack_bar = SnackBar()
 
     #Compilation of all amenities created
-    amenity_instances = [reception,equestrianclub,spa,soccerpitch,gym,cafeteria,golfcourse,pool,[alley,snack_bar]]
-
+    # amenity_instances = [reception,equestrianclub,spa,soccerpitch,gym,cafeteria,golfcourse,pool,[alley,snack_bar]]
+    amenity_instances = [reception,equestrianclub,spa,soccerpitch]
     # create and start clients
     clients = [Client(i) for i in range(1, 300)]
     for c in clients:
         t = threading.Thread(target=c.random_selector, args = (amenity_instances,) )
         t.start()
         time.sleep(0.1)
+
+    for thread in threading.enumerate():
+        if thread is not threading.main_thread():
+            thread.join()
 
 
 if __name__ == "__main__":

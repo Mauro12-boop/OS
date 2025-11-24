@@ -2,31 +2,6 @@ import random
 import threading
 import time
 
-
-class Client:
-    def __init__(self, id):
-        self.id = id
-
-        # One dictionary per client to store everything they did
-        self.history = {
-            "client_id": self.id,
-            "activities": []   # list of activity dicts
-        }
-
-    def log_activity(self, amenity, action, success, info=""):
-        """
-        Store a single activity in the client's history.
-        NO TIMESTAMP (simplified)
-        """
-        activity = {
-            "amenity": amenity,
-            "action": action,
-            "success": int(success),  # 1 or 0
-            "info": info
-        }
-        self.history["activities"].append(activity)
-
-
 class Reception:
     def __init__(self):
         self.receptionists = None  # list
@@ -115,39 +90,3 @@ class ReceptionSession:
         with self.reception.reception_lock:
             self.receptionist.is_available = True
             self.receptionist.assigned_client = None
-
-
-def main():
-    reception = Reception()
-
-    # Create receptionists (critical resource)
-    receptionists = []
-    for i in range(1, 4):   # 3 receptionists
-        receptionists.append(Receptionist(i))
-    reception.receptionists = receptionists
-
-    # Create clients
-    clients = [Client(i) for i in range(1, 31)]
-
-    def client_routine(client):
-        reception.request_assistance(client)
-
-    # Start threads
-    threads = []
-    for c in clients:
-        t = threading.Thread(target=client_routine, args=(c,))
-        t.start()
-        threads.append(t)
-
-    # Wait for completion
-    for t in threads:
-        t.join()
-
-    for c in clients:
-        print(f"\nClient {c.id} history:")
-        for activity in c.history["activities"]:
-            print(activity)
-
-
-if __name__ == "__main__":
-    main()
