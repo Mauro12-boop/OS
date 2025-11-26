@@ -22,8 +22,20 @@ class SwimmingPool:
                     self.lanes[i] = client
                     if from_queue:
                         print(f'client {client.id} from queue has started swimming in lane {i + 1}')
+                        client.log_activity(
+                            amenity="Swimming Pool Lane",
+                            action="Enter from queue",
+                            success=True,
+                            info=f"Lane {i + 1}"
+                        )
                     else:
                         print(f'client {client.id} has started swimming in lane {i + 1}')
+                        client.log_activity(
+                            amenity="Swimming Pool Lane",
+                            action="Enter lane",
+                            success=True,
+                            info=f"Lane {i + 1}"
+                        )
 
                     # Start swim session in background thread
                     t = threading.Thread(target=self._lane_swim_session, args=(client, i))
@@ -34,12 +46,19 @@ class SwimmingPool:
 
     def _lane_swim_session(self, client, lane_index):
         # Swim for random time
-        time.sleep(random.randint(3, 8))
+        swim_time = random.randint(3, 8)
+        time.sleep(swim_time)
 
         with self.lanes_lock:
             if self.lanes[lane_index] == client:
                 self.lanes[lane_index] = None
         print(f'client {client.id} has finished swimming in lane {lane_index + 1}')
+        client.log_activity(
+            amenity="Swimming Pool Lane",
+            action="Finish swimming",
+            success=True,
+            info=f"Lane {lane_index + 1}, Duration: {swim_time}s"
+        )
 
         # Process queue after someone leaves
         self._process_lanes_queue()
@@ -50,8 +69,20 @@ class SwimmingPool:
                 self.recreation_pool.append(client)
                 if from_queue:
                     print(f'client {client.id} from queue has started swimming in recreation pool')
+                    client.log_activity(
+                        amenity="Swimming Pool Recreation",
+                        action="Enter from queue",
+                        success=True,
+                        info="Recreation pool"
+                    )
                 else:
                     print(f'client {client.id} has started swimming in recreation pool')
+                    client.log_activity(
+                        amenity="Swimming Pool Recreation",
+                        action="Enter recreation",
+                        success=True,
+                        info="Recreation pool"
+                    )
 
                 # Start swim session in background thread
                 t = threading.Thread(target=self._recreation_swim_session, args=(client,))
@@ -62,12 +93,19 @@ class SwimmingPool:
 
     def _recreation_swim_session(self, client):
         # Swim for random time
-        time.sleep(random.randint(5, 10))
+        swim_time = random.randint(5, 10)
+        time.sleep(swim_time)
 
         with self.recreation_lock:
             if client in self.recreation_pool:
                 self.recreation_pool.remove(client)
         print(f'client {client.id} has finished swimming in recreation pool')
+        client.log_activity(
+            amenity="Swimming Pool Recreation",
+            action="Finish swimming",
+            success=True,
+            info=f"Recreation pool, Duration: {swim_time}s"
+        )
 
         # Process queue after someone leaves
         self._process_recreation_queue()
@@ -93,73 +131,22 @@ class SwimmingPool:
         with self.queue_lock:
             self.lanes_queue.append(client)
         print(f"client {client.id} joined lane pool queue (position: {len(self.lanes_queue)})")
+        client.log_activity(
+            amenity="Swimming Pool Lane",
+            action="Join queue",
+            success=True,
+            info=f"Queue position: {len(self.lanes_queue)}"
+        )
 
     def join_recreation_queue(self, client): # adding a client to the recreation pool queue
         with self.queue_lock:
             self.recreation_queue.append(client)
         print(f"client {client.id} joined recreation pool queue (position: {len(self.recreation_queue)})")
+        client.log_activity(
+            amenity="Swimming Pool Recreation",
+            action="Join queue",
+            success=True,
+            info=f"Queue position: {len(self.recreation_queue)}"
+        )
 
-
-class Client:
-    def __init__(self, id):
-        self.id = id
-        self.determination = random.random()  # How determined they are to swim (0-1)
-
-    def go_to_pool(self, pool):# Member chooses which to go first
-        first_choice = random.randint(1, 2)
-        # lane pool = 1 and recreation = 2
-        if first_choice == 1:
-            success = pool.enter_lane_pool(self)
-            if not success:
-                print(f"client {self.id} found lane pool full")
-                # Try recreation pool
-                success = pool.enter_recreation_pool(self)
-                if not success:
-                    print(f"client {self.id} found both pools full")
-                    # Decide whether to wait in queue or leave
-                    if self.determination > 0.5:  # Really wants to swim
-                        queue_choice = random.randint(1, 2)
-                        if queue_choice == 1:
-                            pool.join_lanes_queue(self)
-                        else:
-                            pool.join_recreation_queue(self)
-                    else:
-                        print(f"client {self.id} decided to leave - not determined enough")
-                else:
-                    print(f"client {self.id} successfully entered recreation pool")
-            else:
-                print(f"client {self.id} successfully entered lane pool")
-        else:
-            # Try recreation pool first
-            success = pool.enter_recreation_pool(self)
-            if not success:
-                print(f"client {self.id} found recreation pool full")
-                # Try lane pool
-                success = pool.enter_lane_pool(self)
-                if not success:
-                    print(f"client {self.id} found both pools full")
-                    # Decide whether to wait in queue or leave
-                    if self.determination > 0.5:  # Really wants to swim
-                        queue_choice = random.randint(1, 2)
-                        if queue_choice == 1:
-                            pool.join_lanes_queue(self)
-                        else:
-                            pool.join_recreation_queue(self)
-                    else:
-                        print(f"client {self.id} decided to leave - not determined enough")
-                else:
-                    print(f"client {self.id} successfully entered lane pool")
-            else:
-                print(f"client {self.id} successfully entered recreation pool")
-
-
-def main():
-    pool = SwimmingPool()
-    clients = [Client(i) for i in range(1, 20)] #ADJUST TO CLIENT
-    # Start all clients
-    for client in clients:
-        t = threading.Thread(target=client.go_to_pool, args=(pool,))
-        t.start()
-
-if __name__ == "__main__":
-    main()
+# REMOVED local Client class - now uses controller's Client
