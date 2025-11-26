@@ -10,10 +10,6 @@ class GolfCourse:
         self.range_lock = threading.RLock()
         self.course_lock = threading.RLock()
 
-    # Notice we use RLock not Lock: it allows the same thread to acquire the same lock multiple times. This means if one function (in the same thread) calls another function that also uses the same lock, it won't deadlock and can safely re-enter the lock.
-    # Other threads, however, still have to wait until the lock is fully released.
-    # Example: if a client finds an available range slot (using course.range_lock), it can then start practicing (which reuses course.range_lock safely).
-
     def practice_range(self, client):
         # Client tries to practice at the driving range
         with self.range_lock:
@@ -23,17 +19,29 @@ class GolfCourse:
                     slot = s
                     break
         if slot:
-            # If a free slot is found, start a practice session
+            # Log + start practice session
+            client.log_activity(
+                amenity="Golf driving range",
+                action="Start practice",
+                success=True,
+                info=f"Slot {slot.id}"
+            )
             slot.practice_session(client, slot.id)
         else:
-            # No free slot available
             print(f"client {client.id} could not practice at the driving range - all slots were full")
+            client.log_activity(
+                amenity="Golf driving range",
+                action="Start practice",
+                success=False,
+                info="All slots were full"
+            )
 
     def play_course(self, client):
         # Client tries to start a golf round on the course
         with self.course_lock:
             hole = None
             cart = None
+
             # Find an available hole
             for h in self.holes:
                 if not h.is_occupied:
@@ -41,6 +49,7 @@ class GolfCourse:
                     h.client = client
                     hole = h
                     break
+
             # Find an available cart
             for c in self.carts:
                 if c.is_available:
@@ -48,6 +57,7 @@ class GolfCourse:
                     c.assigned_client = client
                     cart = c
                     break
+
             # If either hole or cart is not available, roll back and exit
             if hole is None or cart is None:
                 if hole is not None:
@@ -57,27 +67,17 @@ class GolfCourse:
                     cart.is_available = True
                     cart.assigned_client = None
                 print(f"client {client.id} could not start a golf round - no hole or cart available")
+                client.log_activity(
+                    amenity="Golf course",
+                    action="Start round",
+                    success=False,
+                    info="No hole or cart available"
+                )
                 return
+
         # Start a golf session outside the lock
         session = GolfSession(random.randint(1, 1000), hole, client, cart)
         session.start_session()
-
-class Client:
-    def __init__(self, id, golfcourse):
-        self.id = id
-        self.golfcourse = golfcourse
-
-    def go_to_golf(self):
-        # Simulate staggered arrival of clients
-        time.sleep(random.uniform(0.1, 1.0))
-        # Randomly decide to either practice at the range or play on the course
-        coin = random.randint(1, 2)
-        if coin == 1:
-            self.golfcourse.practice_range(self)
-        else:
-            self.golfcourse.play_course(self)
-
-##First I defined the two components a client needs to start a session: Cart and hole
 
 class Hole:
     def __init__(self, id, course):
@@ -92,28 +92,41 @@ class Cart:
         self.is_available = True
         self.assigned_client = None
 
-## Now I created the actual session the client will start: 
-
 class GolfSession:
     def __init__(self, id, hole, client, cart):
         self.id = id
         self.hole = hole
         self.client = client
         self.cart = cart
-        self.duration = random.uniform(2, 4)  # shortened session duration
+        self.duration = 5  # simulate playing time in seconds
 
     def start_session(self):
-        # Announce the start of the golf session
+        # Log + announce the start of the golf session
         print(f'client {self.client.id} has started a golf session on hole {self.hole.id} with cart {self.cart.id}')
+        self.client.log_activity(
+            amenity="Golf course",
+            action="Start session",
+            success=True,
+            info=f"Hole {self.hole.id}, Cart {self.cart.id}, Session {self.id}"
+        )
+
         time.sleep(self.duration)
+
         # After the session duration, free up the resources
         with self.hole.course.course_lock:
             self.hole.is_occupied = False
             self.hole.client = None
             self.cart.is_available = True
             self.cart.assigned_client = None
-        # Announce the end of the golf session
+
+        # Log + announce end of session
         print(f'client {self.client.id} has ended a golf session on hole {self.hole.id} with cart {self.cart.id}')
+        self.client.log_activity(
+            amenity="Golf course",
+            action="End session",
+            success=True,
+            info=f"Hole {self.hole.id}, Cart {self.cart.id}, Session {self.id}"
+        )
 
 class RangeSlot:
     def __init__(self, id, course):
@@ -128,7 +141,13 @@ class RangeSlot:
             self.is_occupied = True
             self.client = client
         print(f'client {self.client.id} has started practicing at driving range slot {slot_id}')
-        time.sleep(random.uniform(1.2, 2.2))  # shorter practice time for realistic turnover
+        client.log_activity(
+            amenity="Golf driving range",
+            action="Practice session start",
+            success=True,
+            info=f"Slot {slot_id}"
+        )
+        time.sleep(5)  # simulate practice time
         self.finish_practice(client, slot_id)
 
     def finish_practice(self, client, slot_id):
@@ -137,16 +156,44 @@ class RangeSlot:
             self.is_occupied = False
             self.client = None
         print(f'client {client.id} has finished practicing at driving range slot {slot_id}')
+        client.log_activity(
+            amenity="Golf driving range",
+            action="Practice session end",
+            success=True,
+            info=f"Slot {slot_id}"
+        )
+
+class Client:
+    """
+    Local Client used in this file for now.
+    In the integrated project, this should be replaced
+    by the global Client class that already defines log_activity.
+    """
+    def __init__(self, id, golfcourse):
+        self.id = id
+        self.golfcourse = golfcourse
+
+    def log_activity(self, amenity, action, success, info=""):
+        # Placeholder: in the real project the global Client will override this
+        print(f"[LOG] Client {self.id} | {amenity} | {action} | success={success} | {info}")
+
+    def go_to_golf(self):
+        # Randomly decide to either practice at the range or play on the course
+        coin = random.randint(1, 2)
+        if coin == 1:
+            self.golfcourse.practice_range(self)
+        else:
+            self.golfcourse.play_course(self)
 
 def main():
     golfcourse = GolfCourse()
-    # Create 9 holes (typical golf course may have 9 or 18 holes)
+    # Create 9 holes
     holes = [Hole(i, golfcourse) for i in range(1, 10)]
     golfcourse.holes = holes
-    # Create 5 golf carts (limited number of carts available)
+    # Create 5 golf carts
     carts = [Cart(i) for i in range(1, 6)]
     golfcourse.carts = carts
-    # Create 5 driving range slots for practice at the driving range
+    # Create 5 driving range slots
     range_slots = [RangeSlot(i, golfcourse) for i in range(1, 6)]
     golfcourse.range_slots = range_slots
     # Create clients
