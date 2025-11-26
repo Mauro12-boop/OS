@@ -5,6 +5,8 @@ from administrativeoffice import Reception, Receptionist, ReceptionSession
 from equestrian import EquestrianClub,Tracks,Horse,EquestrianSession
 from spa import Spa,Masseuse,MassageRoom,MassageSession,SaunaRoom
 from soccer import SoccerPitch, Match
+from gym import Gym,IndividualSpot,Trainer,PrivateClassSession
+from cafeteria import Cafeteria,Server,FoodItem,ServingSession,EatingSession
 
 
 class Client:
@@ -35,108 +37,111 @@ class Client:
 
 
     def random_selector(self,amenity_instances):
-        amenity_roulette = random.randint(1,4)
-        #addd loop so that it runs forever
-        if amenity_roulette ==1:
-            self.amenity_instance = amenity_instances[0]
-            self.amenity_instance.request_assistance(self)
-        elif amenity_roulette ==2:
-            self.amenity_instance = amenity_instances[1]
-            self.amenity_instance.ride_horse(self)
-        elif amenity_roulette ==3:
-            self.amenity_instance = amenity_instances[2]
-            coin = random.randint(1, 2)
-            if coin == 1:
-                self.amenity_instance.enter_sauna(self)
-            else:
-                self.amenity_instance.do_massage(self)
-        elif amenity_roulette ==4:
-            self.amenity_instance = amenity_instances[3]
-            self.amenity_instance.join_a_team(self)
-            if self in self.amenity_instance.teamA:
-                self.amenity_instance.start_match()
-        elif amenity_roulette ==5:
-            self.amenity_instance = amenity_instances[4]
-            coin = random.randint(1, 2)
-            if coin == 1:
-                self.amenity_instance.enter_individual(self)
-            else:
-                self.amenity_instance.join_private_class(self)
-        elif amenity_roulette ==6:
-            self.amenity_instance = amenity_instances[5]
-            self.amenity_instance.order_at_counter(self)
-        elif amenity_roulette == 7:
-            self.amenity_instance = amenity_instances[6]
-            time.sleep(random.uniform(0.1, 1.0))
-            coin = random.randint(1, 2)
-            if coin == 1:
-                self.amenity_instance.practice_range(self)
-            else:
-                self.amenity_instance.play_course(self)
-        elif amenity_roulette == 8:
-            determination = determination = random.random()
-            self.amenity_instance = amenity_instances[7]
-            first_choice = random.randint(1, 2)
-            # lane pool = 1 and recreation = 2
-            if first_choice == 1:
-                success = self.amenity_instance.enter_lane_pool(self)
-                if not success:
-                    print(f"client {self.id} found lane pool full")
-                    # Try recreation pool
-                    success = self.amenity_instance.enter_recreation_pool(self)
-                    if not success:
-                        print(f"client {self.id} found both pools full")
-                        # Decide whether to wait in queue or leave
-                        if determination > 0.5:  # Really wants to swim
-                            queue_choice = random.randint(1, 2)
-                            if queue_choice == 1:
-                                self.amenity_instance.join_lanes_queue(self)
-                            else:
-                                self.amenity_instance.join_recreation_queue(self)
-                        else:
-                            print(f"client {self.id} decided to leave - not determined enough")
-                    else:
-                        print(f"client {self.id} successfully entered recreation pool")
+        start = time.time()
+        while time.time() - start < 24:
+            amenity_roulette = random.randint(1,6)
+            #addd loop so that it runs forever
+            if amenity_roulette ==1:
+                self.amenity_instance = amenity_instances[0]
+                self.amenity_instance.request_assistance(self)
+            elif amenity_roulette ==2:
+                self.amenity_instance = amenity_instances[1]
+                self.amenity_instance.ride_horse(self)
+            elif amenity_roulette ==3:
+                self.amenity_instance = amenity_instances[2]
+                coin = random.randint(1, 2)
+                if coin == 1:
+                    self.amenity_instance.enter_sauna(self)
                 else:
-                    print(f"client {self.id} successfully entered lane pool")
-            else:
-                # Try recreation pool first
-                success = self.amenity_instance.enter_recreation_pool(self)
-                if not success:
-                    print(f"client {self.id} found recreation pool full")
-                    # Try lane pool
+                    self.amenity_instance.do_massage(self)
+            elif amenity_roulette ==4:
+                self.amenity_instance = amenity_instances[3]
+                self.amenity_instance.join_a_team(self)
+                if self in self.amenity_instance.teamA:
+                    self.amenity_instance.start_match()
+            elif amenity_roulette ==5:
+                self.amenity_instance = amenity_instances[4]
+                coin = random.randint(1, 2)
+                if coin == 1:
+                    self.amenity_instance.enter_individual(self)
+                else:
+                    self.amenity_instance.join_private_class(self)
+            elif amenity_roulette ==6:
+                self.amenity_instance = amenity_instances[5]
+                self.amenity_instance.order_at_counter(self)
+            elif amenity_roulette == 7:
+                self.amenity_instance = amenity_instances[6]
+                time.sleep(random.uniform(0.1, 1.0))
+                coin = random.randint(1, 2)
+                if coin == 1:
+                    self.amenity_instance.practice_range(self)
+                else:
+                    self.amenity_instance.play_course(self)
+            elif amenity_roulette == 8:
+                determination = determination = random.random()
+                self.amenity_instance = amenity_instances[7]
+                first_choice = random.randint(1, 2)
+                # lane pool = 1 and recreation = 2
+                if first_choice == 1:
                     success = self.amenity_instance.enter_lane_pool(self)
                     if not success:
-                        print(f"client {self.id} found both pools full")
-                        # Decide whether to wait in queue or leave
-                        if determination > 0.5:  # Really wants to swim
-                            queue_choice = random.randint(1, 2)
-                            if queue_choice == 1:
-                                self.amenity_instance.join_lanes_queue(self)
+                        print(f"client {self.id} found lane pool full")
+                        # Try recreation pool
+                        success = self.amenity_instance.enter_recreation_pool(self)
+                        if not success:
+                            print(f"client {self.id} found both pools full")
+                            # Decide whether to wait in queue or leave
+                            if determination > 0.5:  # Really wants to swim
+                                queue_choice = random.randint(1, 2)
+                                if queue_choice == 1:
+                                    self.amenity_instance.join_lanes_queue(self)
+                                else:
+                                    self.amenity_instance.join_recreation_queue(self)
                             else:
-                                self.amenity_instance.join_recreation_queue(self)
+                                print(f"client {self.id} decided to leave - not determined enough")
                         else:
-                            print(f"client {self.id} decided to leave - not determined enough")
+                            print(f"client {self.id} successfully entered recreation pool")
                     else:
                         print(f"client {self.id} successfully entered lane pool")
                 else:
-                    print(f"client {self.id} successfully entered recreation pool")
-        elif amenity_roulette == 9:
-            self.amenity_instance = amenity_instances[8]
-            purchase_timing = random.choice(["none", "before", "after"])
-            if purchase_timing == "before":
-                # Buy a snack before bowling
-                self.amenity_instance[1].purchase(self.id)
+                    # Try recreation pool first
+                    success = self.amenity_instance.enter_recreation_pool(self)
+                    if not success:
+                        print(f"client {self.id} found recreation pool full")
+                        # Try lane pool
+                        success = self.amenity_instance.enter_lane_pool(self)
+                        if not success:
+                            print(f"client {self.id} found both pools full")
+                            # Decide whether to wait in queue or leave
+                            if determination > 0.5:  # Really wants to swim
+                                queue_choice = random.randint(1, 2)
+                                if queue_choice == 1:
+                                    self.amenity_instance.join_lanes_queue(self)
+                                else:
+                                    self.amenity_instance.join_recreation_queue(self)
+                            else:
+                                print(f"client {self.id} decided to leave - not determined enough")
+                        else:
+                            print(f"client {self.id} successfully entered lane pool")
+                    else:
+                        print(f"client {self.id} successfully entered recreation pool")
+            elif amenity_roulette == 9:
+                self.amenity_instance = amenity_instances[8]
+                purchase_timing = random.choice(["none", "before", "after"])
+                if purchase_timing == "before":
+                    # Buy a snack before bowling
+                    self.amenity_instance[1].purchase(self.id)
 
-            # Request a lane (this may block until a lane/group is available)
-            self.amenity_instance[0].request_lane(self)  # <-- ALWAYS runs (outside the ifs)
+                # Request a lane (this may block until a lane/group is available)
+                self.amenity_instance[0].request_lane(self)  # <-- ALWAYS runs (outside the ifs)
 
-            if purchase_timing == "after":
-                # Buy a snack after finishing bowling
-                self.amenity_instance[1].purchase(self.id)
-        elif amenity_roulette == 10:
-            pass
-
+                if purchase_timing == "after":
+                    # Buy a snack after finishing bowling
+                    self.amenity_instance[1].purchase(self.id)
+            elif amenity_roulette == 10:
+                pass
+            time.sleep(5)
+        return
 
 
 
@@ -191,34 +196,34 @@ def main():
 
     soccerpitch = SoccerPitch()
 
-    # #Gym
-    #
-    # gym = Gym()
-    #
-    # individual_spots = []
-    # for i in range(1, 20):
-    #     individual_spots.append(IndividualSpot(i, gym))
-    # gym.individual_spots = individual_spots
-    #
-    # trainers = []
-    # for i in range(1, 4):
-    #     trainers.append(Trainer(i))
-    # gym.trainers = trainers
-    #
-    # #Cafeteria
-    #
-    # cafeteria = Cafeteria()
-    # servers = []  # create servers (critical resource)
-    # for i in range(1, 4):  # 3 servers
-    #     servers.append(Server(i))
-    # cafeteria.servers = servers
-    # cafeteria.menu = [ # menu with limited stock (critical resource)
-    #     FoodItem("sandwich", 10),
-    #     FoodItem("salad", 8),
-    #     FoodItem("pizza", 6),
-    #     FoodItem("pasta", 5),
-    # ]
-    #
+    #Gym
+
+    gym = Gym()
+
+    individual_spots = []
+    for i in range(1, 20):
+        individual_spots.append(IndividualSpot(i, gym))
+    gym.individual_spots = individual_spots
+
+    trainers = []
+    for i in range(1, 4):
+        trainers.append(Trainer(i))
+    gym.trainers = trainers
+
+    #Cafeteria
+
+    cafeteria = Cafeteria()
+    servers = []  # create servers (critical resource)
+    for i in range(1, 4):  # 3 servers
+        servers.append(Server(i))
+    cafeteria.servers = servers
+    cafeteria.menu = [ # menu with limited stock (critical resource)
+        FoodItem("sandwich", 10),
+        FoodItem("salad", 8),
+        FoodItem("pizza", 6),
+        FoodItem("pasta", 5),
+    ]
+
     # #Golf
     #
     # golfcourse = GolfCourse()
@@ -238,9 +243,9 @@ def main():
 
     #Compilation of all amenities created
     # amenity_instances = [reception,equestrianclub,spa,soccerpitch,gym,cafeteria,golfcourse,pool,[alley,snack_bar]]
-    amenity_instances = [reception,equestrianclub,spa,soccerpitch]
+    amenity_instances = [reception,equestrianclub,spa,soccerpitch,gym,cafeteria]
     # create and start clients
-    clients = [Client(i) for i in range(1, 300)]
+    clients = [Client(i) for i in range(1, 100)]
     for c in clients:
         t = threading.Thread(target=c.random_selector, args = (amenity_instances,) )
         t.start()

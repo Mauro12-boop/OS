@@ -2,31 +2,6 @@ import random
 import threading
 import time
 
-
-class Client:
-    def __init__(self, id):
-        self.id = id
-
-        # One dictionary per client to store everything they did
-        self.history = {
-            "client_id": self.id,
-            "activities": []   # list of activity dicts
-        }
-
-    def log_activity(self, amenity, action, success, info=""):
-        """
-        Store a single activity in the client's history.
-        NO TIMESTAMP (simplified)
-        """
-        activity = {
-            "amenity": amenity,
-            "action": action,
-            "success": int(success),  # 1 or 0
-            "info": info
-        }
-        self.history["activities"].append(activity)
-
-
 class Cafeteria:
     def __init__(self):
         self.servers = None  # servers list
@@ -154,43 +129,3 @@ class EatingSession:
         time.sleep(self.duration)
         print(f"client {self.client.id} finished eating '{self.item_name}'.")
 
-
-def main():
-    cafeteria = Cafeteria()
-
-    # Create servers (critical resource)
-    servers = []
-    for i in range(1, 4):  # 3 servers
-        servers.append(Server(i))
-    cafeteria.servers = servers
-
-    # Menu with limited stock
-    cafeteria.menu = [
-        FoodItem("sandwich", 10),
-        FoodItem("salad", 8),
-        FoodItem("pizza", 6),
-        FoodItem("pasta", 5),
-    ]
-
-    # Create clients
-    clients = [Client(i) for i in range(1, 31)]
-
-    threads = []
-    for c in clients:
-        t = threading.Thread(target=cafeteria.order_at_counter, args=(c,))
-        t.start()
-        threads.append(t)
-
-    # Wait for all threads to finish
-    for t in threads:
-        t.join()
-
-    # Print client histories for debugging
-    for c in clients:
-        print(f"\nClient {c.id} history:")
-        for activity in c.history["activities"]:
-            print(activity)
-
-
-if __name__ == "__main__":
-    main()

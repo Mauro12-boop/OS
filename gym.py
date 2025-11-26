@@ -3,28 +3,7 @@ import threading
 import time
 
 
-class Client:
-    def __init__(self, id):
-        self.id = id
 
-        # One dictionary per client to store everything they did
-        self.history = {
-            "client_id": self.id,
-            "activities": []   # list of activity dicts
-        }
-
-    def log_activity(self, amenity, action, success, info=""):
-        """
-        Store a single activity in the client's history.
-        NO TIMESTAMP (simplified)
-        """
-        activity = {
-            "amenity": amenity,
-            "action": action,
-            "success": int(success),  # 1 or 0
-            "info": info
-        }
-        self.history["activities"].append(activity)
 
 
 class Gym:
@@ -145,49 +124,3 @@ class PrivateClassSession:
 
         print(f"client {self.client.id} finished private class with trainer {self.trainer.id}.")
 
-
-def main():
-    gym = Gym()
-
-    # Create individual spots
-    individual_spots = []
-    for i in range(1, 20):
-        individual_spots.append(IndividualSpot(i, gym))
-    gym.individual_spots = individual_spots
-
-    # Create trainers
-    trainers = []
-    for i in range(1, 4):
-        trainers.append(Trainer(i))
-    gym.trainers = trainers
-
-    # Create clients
-    clients = [Client(i) for i in range(1, 40)]
-
-    def client_routine(client):
-        coin = random.randint(1, 2)
-        if coin == 1:
-            gym.enter_individual(client)
-        else:
-            gym.join_private_class(client)
-
-    # Start threads
-    threads = []
-    for c in clients:
-        t = threading.Thread(target=client_routine, args=(c,))
-        t.start()
-        threads.append(t)
-
-    # Wait for end
-    for t in threads:
-        t.join()
-
-    # Print history
-    for c in clients:
-        print(f"\nClient {c.id} history:")
-        for a in c.history["activities"]:
-            print(a)
-
-
-if __name__ == "__main__":
-    main()
