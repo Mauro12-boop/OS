@@ -136,15 +136,14 @@ class Client:
                 purchase_timing = random.choice(["none", "before", "after"])
                 if purchase_timing == "before":
                     # Buy a snack before bowling
-                    self.amenity_instance[1].purchase(self.id)
+                    self.amenity_instance[1].purchase(self)
 
                 # Request a lane (this may block until a lane/group is available)
                 self.amenity_instance[0].request_lane(self)  # <-- ALWAYS runs (outside the ifs)
 
                 if purchase_timing == "after":
                     # Buy a snack after finishing bowling
-                    self.amenity_instance[1].purchase(self.id)
-            elif amenity_roulette == 10:
+                    self.amenity_instance[1].purchase(self)
                 pass
             time.sleep(5)
         return
