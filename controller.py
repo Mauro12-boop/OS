@@ -16,6 +16,7 @@ class Client:
         self.snack_bar = snack_bar
         self.assigned = False
         self.finished_event = None
+        self.golfcourse = None
 
 
         # One dictionary per client to store everything they did
@@ -37,6 +38,7 @@ class Client:
 
 
     def random_selector(self,amenity_instances):
+        self.golfcourse = amenity_instances[6]
         start = time.time()
         while time.time() - start < 24:
             amenity_roulette = random.randint(1,6)
@@ -224,16 +226,16 @@ def main():
         FoodItem("pasta", 5),
     ]
 
-    # #Golf
-    #
-    # golfcourse = GolfCourse()
-    # holes = [Hole(i, golfcourse) for i in range(1, 10)] #Create 9 holes (typical golf course may have 9 or 18 holes)
-    # golfcourse.holes = holes
-    # carts = [Cart(i) for i in range(1, 6)] # Create 5 golf carts (limited number of carts available)
-    # golfcourse.carts = carts
-    # range_slots = [RangeSlot(i, golfcourse) for i in range(1, 6)] #Create 5 driving range slots for practice at the driving range
-    # golfcourse.range_slots = range_slots
-    #
+    #Golf
+
+    golfcourse = GolfCourse()
+    holes = [Hole(i, golfcourse) for i in range(1, 10)] #Create 9 holes (typical golf course may have 9 or 18 holes)
+    golfcourse.holes = holes
+    carts = [Cart(i) for i in range(1, 6)] # Create 5 golf carts (limited number of carts available)
+    golfcourse.carts = carts
+    range_slots = [RangeSlot(i, golfcourse) for i in range(1, 6)] #Create 5 driving range slots for practice at the driving range
+    golfcourse.range_slots = range_slots
+
     # #swimming pool
     # pool = SwimmingPool()
     #
@@ -243,7 +245,7 @@ def main():
 
     #Compilation of all amenities created
     # amenity_instances = [reception,equestrianclub,spa,soccerpitch,gym,cafeteria,golfcourse,pool,[alley,snack_bar]]
-    amenity_instances = [reception,equestrianclub,spa,soccerpitch,gym,cafeteria]
+    amenity_instances = [reception,equestrianclub,spa,soccerpitch,gym,cafeteria,golfcourse]
     # create and start clients
     clients = [Client(i) for i in range(1, 100)]
     for c in clients:
