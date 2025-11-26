@@ -1,46 +1,37 @@
- import random
+import random
 import threading
 import time
 
 
 class Table:
-    def _init_(self, number, capacity=5):
+    def __init__(self, number, capacity=5):
         self.number = number
         self.capacity = capacity
         self.is_occupied = False
         self.group_size = 0
         self.current_order = None
+        self.assigned_clients = []  # Track individual clients in this group
 
-    def occupy(self, group_size, order):
+    def occupy(self, group_size, order, clients):
         self.is_occupied = True
         self.group_size = group_size
         self.current_order = order
+        self.assigned_clients = clients
 
     def free(self):
         self.is_occupied = False
         self.group_size = 0
         self.current_order = None
+        self.assigned_clients = []
 
-
-class CustomerGroup:
-    def _init_(self, group_id, size, restaurant):
-        self.group_id = group_id
-        self.size = size
-        self.restaurant = restaurant
-
-    def choose_order(self):
-        order = {}
-        for _ in range(self.size):
-            item = random.choice(list(self.restaurant.menu.keys()))
-            order[item] = order.get(item, 0) + 1
-        return order
 
 class Restaurant:
-    def _init_(self):
+    def __init__(self):
         self.tables = [Table(i) for i in range(1, 11)]  # 10 tables
         self.tables_lock = threading.RLock()
         self.queue = []
         self.total_revenue = 0.0
+        self.revenue_lock = threading.Lock()
         self.menu = {
             "Burger & Fries": 16.00,
             "Pizza": 13.00,
@@ -59,28 +50,58 @@ class Restaurant:
                     return table
         return None
 
-    def seat_group(self, group): # trying to seat or queue them if full
+    def dine_at_restaurant(self, client):
+        """Main method for individual clients to use the restaurant - NON-BLOCKING"""
+        # Individual dining - client dines alone
         while True:
-            table = self.find_free_table(group.size)
+            table = self.find_free_table(1)  # Look for table for 1 person
             if table:
                 with self.tables_lock:
-                    order = group.choose_order()
-                    table.occupy(group.size, order)
-                print(f"\n Group {group.group_id} ({group.size} people) seated at Table {table.number}")
-                self.serve_table(group, table)
+                    order = self.choose_individual_order()
+                    table.occupy(1, order, [client])
+                
+                print(f"Client {client.id} seated at Table {table.number}")
+                client.log_activity(
+                    amenity="Restaurant",
+                    action="Seated at table",
+                    success=True,
+                    info=f"Table {table.number}"
+                )
+                
+                # Start dining session in background thread (NON-BLOCKING)
+                t = threading.Thread(target=self._dining_session, args=(client, table))
+                t.start()
                 break
             else:
                 with self.tables_lock:
-                    if group not in self.queue:
-                        self.queue.append(group)
-                        print(f" Group {group.group_id} waiting in queue ({len(self.queue)} waiting)")
+                    if client not in self.queue:
+                        self.queue.append(client)
+                        print(f"Client {client.id} waiting in restaurant queue ({len(self.queue)} waiting)")
+                        client.log_activity(
+                            amenity="Restaurant",
+                            action="Join queue",
+                            success=True,
+                            info=f"Queue position: {len(self.queue)}"
+                        )
                 time.sleep(2)
 
-    def serve_table(self, group, table): #members are dining and then they pay their bill
-        time.sleep(random.randint(3, 15))  # simulate eating time
+    def choose_individual_order(self):
+        """Choose order for individual client"""
+        order = {}
+        num_items = random.randint(1, 3)  # 1-3 items per person
+        for _ in range(num_items):
+            item = random.choice(list(self.menu.keys()))
+            order[item] = order.get(item, 0) + 1
+        return order
+
+    def _dining_session(self, client, table):
+        """Handle the dining session in a separate thread - NON-BLOCKING"""
+        # Simulate eating time
+        eat_time = random.randint(3, 8)
+        time.sleep(eat_time)
 
         total = 0
-        print(f"\n Group {group.group_id} finished eating at Table {table.number}")
+        print(f"Client {client.id} finished eating at Table {table.number}")
         print("Order summary:")
         for item, qty in table.current_order.items():
             price = self.menu[item]
@@ -89,35 +110,25 @@ class Restaurant:
             print(f"   {item} x{qty} = ${subtotal:.2f}")
 
         print(f" Total bill: ${total:.2f}")
-        self.total_revenue += total
+        
+        with self.revenue_lock:
+            self.total_revenue += total
+
+        # Log the dining experience
+        client.log_activity(
+            amenity="Restaurant",
+            action="Finish dining",
+            success=True,
+            info=f"Table {table.number}, Bill: ${total:.2f}, Duration: {eat_time}s"
+        )
 
         with self.tables_lock:
             table.free()
             print(f"Table {table.number} is now free.")
 
-            # Seat next waiting group if any
+            # Seat next waiting client if any
             if self.queue:
-                next_group = self.queue.pop(0)
-                print(f"️ Seating next in queue: Group {next_group.group_id}")
-                threading.Thread(target=self.seat_group, args=(next_group,)).start()
-
-    def run_simulation(self, num_groups=30): # restaurant  #this will be changed to random according with the users in country club
-        groups = [CustomerGroup(i, random.randint(1, 5), self) for i in range(1, num_groups + 1)]
-        threads = []
-
-        for group in groups:
-            t = threading.Thread(target=self.seat_group, args=(group,))
-            threads.append(t)
-            t.start()
-            time.sleep(random.uniform(0.5, 1.5))  # stagger arrivals
-
-        for t in threads:
-            t.join()
-
-        print("\nRestaurant simulation complete!")
-        print(f"Total revenue: ${self.total_revenue:.2f}")
-
-
-if _name_ == "_main_":
-    restaurant = Restaurant()
-    restaurant.run_simulation()
+                next_client = self.queue.pop(0)
+                print(f"Seating next in queue: Client {next_client.id}")
+                # Start new dining session for next client
+                threading.Thread(target=self._dining_session, args=(next_client, table)).start()
