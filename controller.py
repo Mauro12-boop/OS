@@ -53,7 +53,8 @@ class Client:
         elif amenity_roulette ==4:
             self.amenity_instance = amenity_instances[3]
             self.amenity_instance.join_a_team(self)
-            self.amenity_instance.start_match()
+            if self in self.amenity_instance.teamA:
+                self.amenity_instance.start_match()
         elif amenity_roulette ==5:
             self.amenity_instance = amenity_instances[4]
             coin = random.randint(1, 2)

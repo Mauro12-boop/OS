@@ -11,9 +11,15 @@ class SoccerPitch:
         self.teamB_lock = threading.Lock()
         self.players = []
         self.match_counter = 1
+        self.previous_match = 1
         self.match_counter_lock = threading.Lock()
 
+
+
     def join_a_team(self,client):
+        with self.match_counter_lock:
+            if self.match_counter >= 10:
+                return
         with self.teamA_lock:
             if len(self.teamA)<7:
                 self.teamA.append(client)
@@ -46,11 +52,15 @@ class SoccerPitch:
 
     def start_match(self):
         while True:
-            with self.teamA_lock and self.teamB_lock:
+            time.sleep(0.05)
+            with self.match_counter_lock:
+                if self.previous_match != self.match_counter:
+                    continue
+            with (self.teamA_lock and self.teamB_lock):
                 if len(self.teamA)==7 and len(self.teamB)==7:
                     self.players = self.teamA + self.teamB
                     with self.match_counter_lock:
-                        match = Match(self.teamA,self.teamB,self.match_counter)
+                        match = Match(self.teamA,self.teamB,self.match_counter,self)
                         print(f"AND MATCH {self.match_counter} BEGINS!!!!!!!")
                         self.match_counter = self.match_counter+1
 
@@ -61,13 +71,16 @@ class SoccerPitch:
                     for p in self.players:
                         p = threading.Thread(target=match.play, args = (p,))
                         p.start()
-                        break
+                    with self.teamB_lock and self.teamA_lock:
+                        self.teamB = []
+                        self.players = []
+                    break
                 else:
                     pass
             time.sleep(0.2)
 
 class Match:
-    def __init__(self,teamA,teamB,match_id):
+    def __init__(self,teamA,teamB,match_id,soccerpitch):
         self.ball = threading.Lock()
         self.teamA = teamA
         self.teamB = teamB
@@ -76,9 +89,10 @@ class Match:
         self.teamB_score = 0
         self.going = True
         self.match_id = match_id
+        self.pitch = soccerpitch
 
     def timer(self):
-        t_end = time.time() + 90
+        t_end = time.time() + 10
         while time.time() < t_end:
             pass
 
@@ -87,7 +101,8 @@ class Match:
         print()
         print(f"END OF MATCH {self.match_id} !!!!!!!!!")
         print(f"The final score was {self.teamA_score} for team A and {self.teamB_score} for team B in match {self.match_id}")
-
+        with self.pitch.match_counter_lock:
+            self.pitch.previous_match = self.pitch.previous_match+1
     def play(self,player):
         while self.going:
             with self.ball:
