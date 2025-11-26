@@ -8,6 +8,8 @@ from soccer import SoccerPitch, Match
 from gym import Gym,IndividualSpot,Trainer,PrivateClassSession
 from cafeteria import Cafeteria,Server,FoodItem,ServingSession,EatingSession
 from Golf import GolfCourse,Hole,Cart,GolfSession,RangeSlot
+from swimming_pool import SwimmingPool
+from bowling import SnackBar,BowlingAlley
 
 
 class Client:
@@ -18,6 +20,7 @@ class Client:
         self.assigned = False
         self.finished_event = None
         self.golfcourse = None
+        self.determination = random.random()
 
 
         # One dictionary per client to store everything they did
@@ -42,7 +45,7 @@ class Client:
         self.golfcourse = amenity_instances[6]
         start = time.time()
         while time.time() - start < 24:
-            amenity_roulette = random.randint(1,7)
+            amenity_roulette = random.randint(1,9)
             #addd loop so that it runs forever
             if amenity_roulette ==1:
                 self.amenity_instance = amenity_instances[0]
@@ -237,16 +240,15 @@ def main():
     range_slots = [RangeSlot(i, golfcourse) for i in range(1, 6)] #Create 5 driving range slots for practice at the driving range
     golfcourse.range_slots = range_slots
 
-    # #swimming pool
-    # pool = SwimmingPool()
-    #
-    # #bowling
-    # alley = BowlingAlley(num_lanes=10)
-    # snack_bar = SnackBar()
+    #swimming pool
+    pool = SwimmingPool()
+
+    #bowling
+    alley = BowlingAlley(num_lanes=10)
+    snack_bar = SnackBar()
 
     #Compilation of all amenities created
-    # amenity_instances = [reception,equestrianclub,spa,soccerpitch,gym,cafeteria,golfcourse,pool,[alley,snack_bar]]
-    amenity_instances = [reception,equestrianclub,spa,soccerpitch,gym,cafeteria,golfcourse]
+    amenity_instances = [reception,equestrianclub,spa,soccerpitch,gym,cafeteria,golfcourse,pool,[alley,snack_bar]]
     # create and start clients
     clients = [Client(i) for i in range(1, 100)]
     for c in clients:

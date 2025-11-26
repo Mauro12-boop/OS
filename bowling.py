@@ -87,47 +87,6 @@ class BowlingAlley:
         # Signal all group members that their session is complete
         session_done_event.set()
 
-# Client class representing a person arriving to bowl
-class Client:
-    def __init__(self, client_id, alley, snack_bar):
-        self.id = client_id
-        self.alley = alley
-        self.snack_bar = snack_bar
-        self.assigned = False
-        self.finished_event = None
-    
-    def go_bowling(self):
-        """Simulate the client’s bowling visit, including optional snack purchases."""
-        # Randomly decide if the client buys a snack and whether it's before or after bowling
-        purchase_timing = random.choice(["none", "before", "after"])
-        if purchase_timing == "before":
-            # Buy a snack before bowling
-            self.snack_bar.purchase(self.id)
-       
-        # Request a lane (this may block until a lane/group is available)
-        self.alley.request_lane(self) # <-- ALWAYS runs (outside the ifs)
-        
-        if purchase_timing == "after":
-            # Buy a snack after finishing bowling
-            self.snack_bar.purchase(self.id)
 
-# --- Simulation Execution (if run as a script) ---
-if __name__ == "__main__":
-    # Initialize the bowling alley and snack bar
-    alley = BowlingAlley(num_lanes=10)
-    snack_bar = SnackBar()
-    # Create a number of clients to simulate (arriving as separate threads)
-    clients = [Client(i, alley, snack_bar) for i in range(1, 41)]  # e.g., 40 clients
-    threads = []
-    # Start client threads (simulating random arrival times)
-    for client in clients:
-        # Introduce a small random delay to mimic random arrivals
-        time.sleep(random.uniform(0.1, 0.5))
-        t = threading.Thread(target=client.go_bowling)
-        threads.append(t)
-        t.start()
-    # Wait for all clients to finish
-    for t in threads:
-        t.join()
-    # Print total snack bar revenue at the end
-    print(f"Total snack bar revenue: ${snack_bar.revenue:.2f}")
+
+
