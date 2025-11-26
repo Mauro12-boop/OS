@@ -163,45 +163,4 @@ class RangeSlot:
             info=f"Slot {slot_id}"
         )
 
-class Client:
-    """
-    Local Client used in this file for now.
-    In the integrated project, this should be replaced
-    by the global Client class that already defines log_activity.
-    """
-    def __init__(self, id, golfcourse):
-        self.id = id
-        self.golfcourse = golfcourse
-
-    def log_activity(self, amenity, action, success, info=""):
-        # Placeholder: in the real project the global Client will override this
-        print(f"[LOG] Client {self.id} | {amenity} | {action} | success={success} | {info}")
-
-    def go_to_golf(self):
-        # Randomly decide to either practice at the range or play on the course
-        coin = random.randint(1, 2)
-        if coin == 1:
-            self.golfcourse.practice_range(self)
-        else:
-            self.golfcourse.play_course(self)
-
-def main():
-    golfcourse = GolfCourse()
-    # Create 9 holes
-    holes = [Hole(i, golfcourse) for i in range(1, 10)]
-    golfcourse.holes = holes
-    # Create 5 golf carts
-    carts = [Cart(i) for i in range(1, 6)]
-    golfcourse.carts = carts
-    # Create 5 driving range slots
-    range_slots = [RangeSlot(i, golfcourse) for i in range(1, 6)]
-    golfcourse.range_slots = range_slots
-    # Create clients
-    clients = [Client(i, golfcourse) for i in range(1, 40)]
-    # Launch each client in a separate thread
-    for client in clients:
-        t = threading.Thread(target=client.go_to_golf)
-        t.start()
-
-if __name__ == "__main__":
-    main()
+# REMOVED local Client class - now uses controller's Client
