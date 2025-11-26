@@ -7,6 +7,7 @@ from spa import Spa,Masseuse,MassageRoom,MassageSession,SaunaRoom
 from soccer import SoccerPitch, Match
 from gym import Gym,IndividualSpot,Trainer,PrivateClassSession
 from cafeteria import Cafeteria,Server,FoodItem,ServingSession,EatingSession
+from Golf import GolfCourse,Hole,Cart,GolfSession,RangeSlot
 
 
 class Client:
@@ -41,7 +42,7 @@ class Client:
         self.golfcourse = amenity_instances[6]
         start = time.time()
         while time.time() - start < 24:
-            amenity_roulette = random.randint(1,6)
+            amenity_roulette = random.randint(1,7)
             #addd loop so that it runs forever
             if amenity_roulette ==1:
                 self.amenity_instance = amenity_instances[0]
