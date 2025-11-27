@@ -13,6 +13,7 @@ from bowling import SnackBar,BowlingAlley
 from tennis import TennisCourt,TennisCourtArea
 from Padel import PadelCourt,PadelCourtArea
 from locker_room import LockerRoomArea
+from coworking import Seat,QuietRoom,CoWorkingSpace
 
 
 
@@ -51,7 +52,7 @@ class Client:
         self.golfcourse = amenity_instances[6]
         start = time.time()
         while time.time() - start < 24:
-            amenity_roulette = random.randint(1,12)
+            amenity_roulette = random.randint(1,13)
             #addd loop so that it runs forever
             if amenity_roulette ==1:
                 self.amenity_instance = amenity_instances[0]
@@ -166,8 +167,12 @@ class Client:
                 else:
                     self.amenity_instance = amenity_instances[11][0]
                     self.amenity_instance.use_locker_room(self, gender, wants_shower)
+            elif amenity_roulette == 13:
+                self.amenity_instance = amenity_instances[12]
+                self.amenity_instance.allocate_space(self)
+                time.sleep(random.randint(1, 2))
+                self.amenity_instance.leave_space(self)
             time.sleep(5)
-
         return
 
 
@@ -278,10 +283,24 @@ def main():
     male_locker_room = LockerRoomArea("Male", total_lockers=8, total_showers=3)
     female_locker_room = LockerRoomArea("Female", total_lockers=8, total_showers=3)
 
+    #Coworking Space
+    coworking = CoWorkingSpace()
+
+
     #Compilation of all amenities created
-    amenity_instances = [reception,equestrianclub,spa,soccerpitch,gym,cafeteria,golfcourse,pool,[alley,snack_bar],tennis,padel,[male_locker_room,female_locker_room]]
+    amenity_instances = [reception,equestrianclub,spa,soccerpitch,gym,cafeteria,golfcourse,pool,[alley,snack_bar],tennis,padel,[male_locker_room,female_locker_room],coworking]
     # create and start clients
     clients = [Client(i) for i in range(1, 100)]
+
+    #Reserving rooms for coworking space
+    reserved_clients = 4
+    reserved_clients = min(reserved_clients, len(coworking.quiet_rooms))
+
+    for i in range(reserved_clients):
+        room_obj = coworking.quiet_rooms[i]
+        room_obj.reserved_by = i + 1
+        clients[i].reserved_room = room_obj
+
     for c in clients:
         t = threading.Thread(target=c.random_selector, args = (amenity_instances,) )
         t.start()

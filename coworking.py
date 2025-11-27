@@ -2,16 +2,19 @@ import random
 import threading
 import time
 
+
 class Seat:
     def __init__(self, id):
         self.id = id
         self.is_occupied = False
 
+
 class QuietRoom:
     def __init__(self, id):
         self.id = id
         self.is_occupied = False
-        self.reserved_by = None  # If not None, reserved for a specific client ID
+        self.reserved_by = None
+
 
 class CoWorkingSpace:
     def __init__(self):
@@ -30,7 +33,6 @@ class CoWorkingSpace:
 
     def allocate_space(self, client):
         with self.space_lock:
-            # If the client has a reserved quiet room, go directly there
             if client.reserved_room is not None:
                 room = client.reserved_room
                 while room.is_occupied:
@@ -52,9 +54,7 @@ class CoWorkingSpace:
                 client.current_space = ("room", room.id)
                 return
 
-            # No reservation: try to get a seat or unreserved room
             while True:
-                # Check for free seat
                 free_seat = None
                 for seat in self.seats:
                     if not seat.is_occupied:
@@ -72,14 +72,12 @@ class CoWorkingSpace:
                     client.current_space = ("seat", free_seat.id)
                     return
 
-                # No free seat; check for free, unreserved quiet room
                 free_room = None
                 for room in self.quiet_rooms:
                     if (not room.is_occupied) and (room.reserved_by is None):
                         free_room = room
                         break
                 if free_room is not None:
-                    # Reserve and occupy
                     free_room.reserved_by = client.id
                     free_room.is_occupied = True
                     print(f"Client {client.id} found no seats, so they reserved and entered quiet room {free_room.id}")
@@ -92,7 +90,6 @@ class CoWorkingSpace:
                     client.current_space = ("room", free_room.id)
                     return
 
-                # Otherwise, must wait
                 print(f"Client {client.id} has to wait (no space available)")
                 client.log_activity(
                     amenity="Coworking space",
@@ -133,7 +130,6 @@ class CoWorkingSpace:
                     info=f"Room {space_id}"
                 )
 
-            # Vending machine purchase on exit
             product, price = random.choice(self.products)
             with self.revenue_lock:
                 self.revenue += price
@@ -145,7 +141,5 @@ class CoWorkingSpace:
                 info=f"Item: {product}, Price: {price:.2f}"
             )
 
-            # Notify someone waiting
             self.condition.notify()
 
-# REMOVED local Client class - now uses controller's Client
