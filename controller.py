@@ -12,6 +12,7 @@ from swimming_pool import SwimmingPool
 from bowling import SnackBar,BowlingAlley
 from tennis import TennisCourt,TennisCourtArea
 from Padel import PadelCourt,PadelCourtArea
+from locker_room import LockerRoomArea
 
 
 
@@ -25,6 +26,8 @@ class Client:
         self.finished_event = None
         self.golfcourse = None
         self.determination = random.random()
+        self.reserved_room = None
+        self.current_space = None
 
 
         # One dictionary per client to store everything they did
@@ -44,12 +47,11 @@ class Client:
         self.history["activities"].append(activity)
 
 
-
     def random_selector(self,amenity_instances):
         self.golfcourse = amenity_instances[6]
         start = time.time()
         while time.time() - start < 24:
-            amenity_roulette = random.randint(1,11)
+            amenity_roulette = random.randint(1,12)
             #addd loop so that it runs forever
             if amenity_roulette ==1:
                 self.amenity_instance = amenity_instances[0]
@@ -154,6 +156,16 @@ class Client:
             elif amenity_roulette == 11:
                 self.amenity_instance = amenity_instances[10]
                 self.amenity_instance.play_padel(self)
+            elif amenity_roulette == 12:
+                gender = random.choice(["Male", "Female"])
+                wants_shower = random.random() < 0.7
+
+                if gender == "Male":
+                    self.amenity_instance = amenity_instances[11][0]
+                    self.amenity_instance.use_locker_room(self, gender, wants_shower)
+                else:
+                    self.amenity_instance = amenity_instances[11][0]
+                    self.amenity_instance.use_locker_room(self, gender, wants_shower)
             time.sleep(5)
 
         return
@@ -262,8 +274,12 @@ def main():
     #Padel
     padel = PadelCourtArea(total_courts=4)
 
+    #locker room
+    male_locker_room = LockerRoomArea("Male", total_lockers=8, total_showers=3)
+    female_locker_room = LockerRoomArea("Female", total_lockers=8, total_showers=3)
+
     #Compilation of all amenities created
-    amenity_instances = [reception,equestrianclub,spa,soccerpitch,gym,cafeteria,golfcourse,pool,[alley,snack_bar],tennis,padel]
+    amenity_instances = [reception,equestrianclub,spa,soccerpitch,gym,cafeteria,golfcourse,pool,[alley,snack_bar],tennis,padel,[male_locker_room,female_locker_room]]
     # create and start clients
     clients = [Client(i) for i in range(1, 100)]
     for c in clients:
