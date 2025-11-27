@@ -252,6 +252,8 @@ def main():
     #Tennis
     tennis = TennisCourtArea(total_courts=4)
 
+    #Padel
+
     #Compilation of all amenities created
     amenity_instances = [reception,equestrianclub,spa,soccerpitch,gym,cafeteria,golfcourse,pool,[alley,snack_bar],tennis]
     # create and start clients
