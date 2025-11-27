@@ -11,11 +11,14 @@ from Golf import GolfCourse,Hole,Cart,GolfSession,RangeSlot
 from swimming_pool import SwimmingPool
 from bowling import SnackBar,BowlingAlley
 from tennis import TennisCourt,TennisCourtArea
+from Padel import PadelCourt,PadelCourtArea
+
 
 
 class Client:
     def __init__(self, id, alley=None, snack_bar=None):
         self.id = id
+        self.amenity_instance = None
         self.alley = alley
         self.snack_bar = snack_bar
         self.assigned = False
@@ -46,7 +49,7 @@ class Client:
         self.golfcourse = amenity_instances[6]
         start = time.time()
         while time.time() - start < 24:
-            amenity_roulette = random.randint(1,10)
+            amenity_roulette = random.randint(1,11)
             #addd loop so that it runs forever
             if amenity_roulette ==1:
                 self.amenity_instance = amenity_instances[0]
@@ -148,7 +151,11 @@ class Client:
             elif amenity_roulette == 10:
                 self.amenity_instance = amenity_instances[9]
                 self.amenity_instance.play_tennis(self)
+            elif amenity_roulette == 11:
+                self.amenity_instance = amenity_instances[10]
+                self.amenity_instance.play_padel(self)
             time.sleep(5)
+
         return
 
 
@@ -253,9 +260,10 @@ def main():
     tennis = TennisCourtArea(total_courts=4)
 
     #Padel
+    padel = PadelCourtArea(total_courts=4)
 
     #Compilation of all amenities created
-    amenity_instances = [reception,equestrianclub,spa,soccerpitch,gym,cafeteria,golfcourse,pool,[alley,snack_bar],tennis]
+    amenity_instances = [reception,equestrianclub,spa,soccerpitch,gym,cafeteria,golfcourse,pool,[alley,snack_bar],tennis,padel]
     # create and start clients
     clients = [Client(i) for i in range(1, 100)]
     for c in clients:
