@@ -14,7 +14,7 @@ from tennis import TennisCourt,TennisCourtArea
 from Padel import PadelCourt,PadelCourtArea
 from locker_room import LockerRoomArea
 from coworking import Seat,QuietRoom,CoWorkingSpace
-
+from database import init_db, save_all_histories
 
 
 class Client:
@@ -286,6 +286,9 @@ def main():
     #Coworking Space
     coworking = CoWorkingSpace()
 
+    #initialise sqllite database
+    init_db()
+
 
     #Compilation of all amenities created
     amenity_instances = [reception,equestrianclub,spa,soccerpitch,gym,cafeteria,golfcourse,pool,[alley,snack_bar],tennis,padel,[male_locker_room,female_locker_room],coworking]
@@ -309,6 +312,9 @@ def main():
     for thread in threading.enumerate():
         if thread is not threading.main_thread():
             thread.join()
+
+    #save everything to sqlite once everything is done
+    save_all_histories(clients)
 
 
 if __name__ == "__main__":
