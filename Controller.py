@@ -54,7 +54,7 @@ class Client:
 
     def random_selector(self,amenity_instances):
         self.golfcourse = amenity_instances[6]
-        while time.time() - self.settings.start_time < 24:
+        while time.time() - self.settings.start_time < 120:
             amenity_roulette = None
             if self.settings.raining == 1:
                 amenity_roulette = random.choice([1, 3, 5, 6, 8, 9, 12, 13])
