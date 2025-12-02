@@ -16,9 +16,12 @@ from locker_room import LockerRoomArea
 from coworking import Seat,QuietRoom,CoWorkingSpace
 from database import init_db, save_all_histories
 
-
+class SimulationSettings:
+    def __init__(self):
+        self.raining = random.choice([1,0])
+        self.start_time = time.time()
 class Client:
-    def __init__(self, id, alley=None, snack_bar=None):
+    def __init__(self, id, settings, alley=None, snack_bar=None):
         self.id = id
         self.amenity_instance = None
         self.alley = alley
@@ -29,6 +32,7 @@ class Client:
         self.determination = random.random()
         self.reserved_room = None
         self.current_space = None
+        self.settings = settings
 
 
         # One dictionary per client to store everything they did
@@ -50,9 +54,13 @@ class Client:
 
     def random_selector(self,amenity_instances):
         self.golfcourse = amenity_instances[6]
-        start = time.time()
-        while time.time() - start < 24:
-            amenity_roulette = random.randint(1,13)
+        while time.time() - self.settings.start_time < 24:
+            amenity_roulette = None
+            if self.settings.raining == 1:
+                amenity_roulette = random.choice([1, 3, 5, 6, 8, 9, 12, 13])
+            elif self.settings.raining == 0:
+                amenity_roulette = random.randint(1,13)
+
             #addd loop so that it runs forever
             if amenity_roulette ==1:
                 self.amenity_instance = amenity_instances[0]
@@ -165,7 +173,7 @@ class Client:
                     self.amenity_instance = amenity_instances[11][0]
                     self.amenity_instance.use_locker_room(self, gender, wants_shower)
                 else:
-                    self.amenity_instance = amenity_instances[11][0]
+                    self.amenity_instance = amenity_instances[11][1]
                     self.amenity_instance.use_locker_room(self, gender, wants_shower)
             elif amenity_roulette == 13:
                 self.amenity_instance = amenity_instances[12]
@@ -178,6 +186,13 @@ class Client:
 
 
 def main():
+
+    settings = SimulationSettings()
+    if settings.raining == 1:
+        print("Today it is raining")
+        client_num = 50
+    elif settings.raining == 0:
+        print("Today it is not raining")
 
     #Creating instances of Necessary objects
 
@@ -293,7 +308,7 @@ def main():
     #Compilation of all amenities created
     amenity_instances = [reception,equestrianclub,spa,soccerpitch,gym,cafeteria,golfcourse,pool,[alley,snack_bar],tennis,padel,[male_locker_room,female_locker_room],coworking]
     # create and start clients
-    clients = [Client(i) for i in range(1, 100)]
+    clients = [Client(i,settings=settings) for i in range(1, 100)]
 
     #Reserving rooms for coworking space
     reserved_clients = 4
