@@ -53,20 +53,13 @@ class SoccerPitch:
     def start_match(self):
 
         while True:
-            time.sleep(0.05)
+            time.sleep(1)
 
             with self.match_counter_lock:
-                # ---------------- FIX 1 ----------------
-                # If match already started, break the loop.
-                # This prevents infinite waiting.
-                # ----------------------------------------
+
                 if self.previous_match != self.match_counter:
                     break
 
-            # ---------------- FIX 2 ----------------
-            # Proper lock acquisition (two separate with)
-            # Python CANNOT lock multiple locks in a tuple.
-            # --------------------------------------------
             with self.teamA_lock:
                 with self.teamB_lock:
 
