@@ -4,6 +4,7 @@ import time
 
 class SoccerPitch:
     def __init__(self):
+        # Holds teams and handles synchronization
         self.teamA = []
         self.teamA_lock = threading.Lock()
         self.teamB = []
@@ -12,11 +13,12 @@ class SoccerPitch:
         self.players = []
         self.match_counter = 1
         self.previous_match = 1
-        self.match_counter_lock = threading.Lock()
+        self.match_counter_lock = threading.Lock()  # Controls match sequencing
 
     def join_a_team(self, client):
+        # Players join teams until both reach 7 members
         with self.match_counter_lock:
-            if self.match_counter >= 5:
+            if self.match_counter >= 5:  # Limit number of matches
                 return
 
         with self.teamA_lock:
@@ -41,6 +43,7 @@ class SoccerPitch:
                 )
                 return
 
+        # If both teams full
         print(f"Client {client.id} tried to play a soccer match, but teams are full")
         client.log_activity(
             amenity="Soccer",
@@ -51,12 +54,11 @@ class SoccerPitch:
         return
 
     def start_match(self):
-
+        # Waits until both teams are full, then launches match threads
         while True:
             time.sleep(1)
 
             with self.match_counter_lock:
-
                 if self.previous_match != self.match_counter:
                     break
 
@@ -72,36 +74,42 @@ class SoccerPitch:
                             print(f"AND MATCH {self.match_counter} BEGINS!!!!!!!")
                             self.match_counter += 1
 
+                        # Start match timer
                         timer_thread = threading.Thread(target=match.timer)
                         timer_thread.start()
 
+                        # Start player threads
                         random.shuffle(self.players)
-
                         for p in self.players:
                             th = threading.Thread(target=match.play, args=(p,))
                             th.start()
+
+                        # Reset pitch for next match
                         self.teamA = []
                         self.teamB = []
                         self.players = []
 
-                        break  # End start_match loop
+                        break
 
             time.sleep(0.2)
 
 
 class Match:
     def __init__(self, teamA, teamB, match_id, soccerpitch):
-        self.ball = threading.Lock()
+        # Represents a single match: scoring, timer, player actions
+        self.ball = threading.Lock()  # Only one player can shoot at a time
         self.teamA = teamA
         self.teamB = teamB
         self.players = teamA + teamB
+
         self.teamA_score = 0
         self.teamB_score = 0
-        self.going = True
+        self.going = True  # Match state
         self.match_id = match_id
         self.pitch = soccerpitch
 
     def timer(self):
+        # Match lasts 10 seconds, then stops game and prints score
         t_end = time.time() + 10
 
         while time.time() < t_end:
@@ -114,11 +122,12 @@ class Match:
         print(f"END OF MATCH {self.match_id} !!!!!!!!!")
         print(f"The final score was {self.teamA_score} for team A and {self.teamB_score} for team B in match {self.match_id}")
 
+        # Update pitch so next match can begin
         with self.pitch.match_counter_lock:
-
             self.pitch.previous_match = self.match_id
 
     def play(self, player):
+        # Each player repeatedly attempts to score while match is active
         while self.going:
             with self.ball:
                 goal = 1

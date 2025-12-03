@@ -19,11 +19,14 @@ from database import init_db, save_all_histories
 
 class SimulationSettings:
     def __init__(self):
+        # Stores weather and simulation start time
         self.raining = random.choice([1,0])
         self.start_time = time.time()
+
 class Client:
     def __init__(self, id, settings, alley=None, snack_bar=None):
-        self.id = id #client id used by all amenities
+        # Represents a single guest participating in the simulation
+        self.id = id
         self.amenity_instance = None
         self.alley = alley
         self.snack_bar = snack_bar
@@ -35,32 +38,37 @@ class Client:
         self.current_space = None
         self.settings = settings
 
-
-        # One dictionary per client to store everything they did
+        # Logs every action taken by the client
         self.history = {
             "client_id": self.id,
-            "activities": []  # list of activity dicts
+            "activities": []
         }
 
     def log_activity(self, amenity, action, success, info=""):
-
+        # Saves client actions for database output
         activity = {
             "amenity": amenity,
             "action": action,
-            "success": int(success),  # 1 or 0 (SQLite-friendly)
+            "success": int(success),
             "info": info
         }
         self.history["activities"].append(activity)
 
     def random_selector(self, amenity_instances):
+        # Main client loop: repeatedly picks a random amenity to visit
         self.golfcourse = amenity_instances[6]
-        while time.time() - self.settings.start_time < 120:
+
+        while time.time() - self.settings.start_time < 30:
             amenity_roulette = None
+
+            # Raining changes amenity probabilities
             if self.settings.raining == 1:
                 amenity_roulette = random.choice([1, 3, 5, 6, 8, 9, 12, 13])
-            elif self.settings.raining == 0:
+            else:
                 amenity_roulette = random.randint(1, 13)
+
             try:
+                # Sequential amenity dispatching block
                 if amenity_roulette == 1:
                     self.amenity_instance = amenity_instances[0]
                     self.amenity_instance.request_assistance(self)
@@ -108,6 +116,8 @@ class Client:
                     determination = random.random()
                     self.amenity_instance = amenity_instances[7]
                     first_choice = random.randint(1, 2)
+
+                    # Swimming pool decision logic
                     if first_choice == 1:
                         success = self.amenity_instance.enter_lane_pool(self)
                         if not success:
@@ -153,7 +163,7 @@ class Client:
                     if purchase_timing == "before":
                         self.amenity_instance[1].purchase(self)
 
-                    self.amenity_instance[0].request_lane(self)  # always executed
+                    self.amenity_instance[0].request_lane(self)
 
                     if purchase_timing == "after":
                         self.amenity_instance[1].purchase(self)
@@ -182,35 +192,31 @@ class Client:
                     self.amenity_instance.leave_space(self)
 
             except Exception as e:
-                # Any unexpected problem is caught here → client survives and tries another amenity
+                # Ensures the simulation keeps running even if an amenity fails
                 print(f"Client {self.id} encountered an error in amenity {amenity_roulette}: {e}")
 
-            # Small pause before the client picks the next activity
             time.sleep(5)
 
-        # End of simulation for this client
         return
 
 
 def main():
-
+    # Global initialization of all amenities and resources
     settings = SimulationSettings()
     if settings.raining == 1:
         print("Today it is raining")
         client_num = 50
-    elif settings.raining == 0:
+    else:
         print("Today it is not raining")
 
-    #Creating instances of Necessary objects:
-
-    #Reception
+    # Reception setup
     reception = Reception()
     receptionists = []
     for i in range(1, 4):
         receptionists.append(Receptionist(i))
     reception.receptionists = receptionists
 
-    #Equestrian
+    # Equestrian setup
     equestrianclub = EquestrianClub()
 
     horses = []
@@ -228,7 +234,7 @@ def main():
         tracks_d.append(Tracks(i, equestrianclub))
     equestrianclub.dressage_tracks = tracks_d
 
-    #spa
+    # Spa setup
     spa = Spa()
 
     saunas = []
@@ -246,12 +252,10 @@ def main():
         massageroomz.append(MassageRoom(i,spa))
     spa.massage_rooms = massageroomz
 
-    #soccer
-
+    # Soccer
     soccerpitch = SoccerPitch()
 
-    #Gym
-
+    # Gym
     gym = Gym()
 
     individual_spots = []
@@ -264,60 +268,62 @@ def main():
         trainers.append(Trainer(i))
     gym.trainers = trainers
 
-    #Cafeteria
-
+    # Cafeteria
     cafeteria = Cafeteria()
-    servers = []  # create servers (critical resource)
-    for i in range(1, 4):  # 3 servers
+    servers = []
+    for i in range(1, 4):
         servers.append(Server(i))
     cafeteria.servers = servers
-    cafeteria.menu = [ # menu with limited stock (critical resource)
+    cafeteria.menu = [
         FoodItem("sandwich", 10),
         FoodItem("salad", 8),
         FoodItem("pizza", 6),
         FoodItem("pasta", 5),
     ]
 
-    #Golf
-
+    # Golf
     golfcourse = GolfCourse()
-    holes = [Hole(i, golfcourse) for i in range(1, 10)] #Create 9 holes (typical golf course may have 9 or 18 holes)
+    holes = [Hole(i, golfcourse) for i in range(1, 10)]
     golfcourse.holes = holes
-    carts = [Cart(i) for i in range(1, 6)] # Create 5 golf carts (limited number of carts available)
+    carts = [Cart(i) for i in range(1, 6)]
     golfcourse.carts = carts
-    range_slots = [RangeSlot(i, golfcourse) for i in range(1, 6)] #Create 5 driving range slots for practice at the driving range
+    range_slots = [RangeSlot(i, golfcourse) for i in range(1, 6)]
     golfcourse.range_slots = range_slots
 
-    #swimming pool
+    # Swimming pool
     pool = SwimmingPool()
 
-    #bowling
+    # Bowling setup
     alley = BowlingAlley(num_lanes=10)
     snack_bar = SnackBar()
 
-    #Tennis
+    # Tennis
     tennis = TennisCourtArea(total_courts=4)
 
-    #Padel
+    # Padel
     padel = PadelCourtArea(total_courts=4)
 
-    #locker room
+    # Locker rooms
     male_locker_room = LockerRoomArea("Male", total_lockers=8, total_showers=3)
     female_locker_room = LockerRoomArea("Female", total_lockers=8, total_showers=3)
 
-    #Coworking Space
+    # Coworking
     coworking = CoWorkingSpace()
 
-    #initialise sqllite database
+    # Database initialization
     init_db()
 
+    # Amenity registry
+    amenity_instances = [
+        reception, equestrianclub, spa, soccerpitch, gym, cafeteria,
+        golfcourse, pool, [alley, snack_bar], tennis, padel,
+        [male_locker_room, female_locker_room], coworking
+    ]
 
-    #Compilation of all amenities created
-    amenity_instances = [reception,equestrianclub,spa,soccerpitch,gym,cafeteria,golfcourse,pool,[alley,snack_bar],tennis,padel,[male_locker_room,female_locker_room],coworking]
-    # create and start clients
+    # Create clients
     clients = [Client(i,settings=settings) for i in range(1, 100)]
 
-    #Reserving rooms for coworking space
+    # Preassign reserved coworking rooms
     reserved_clients = 4
     reserved_clients = min(reserved_clients, len(coworking.quiet_rooms))
 
@@ -326,16 +332,18 @@ def main():
         room_obj.reserved_by = i + 1
         clients[i].reserved_room = room_obj
 
+    # Start clients
     for c in clients:
-        t = threading.Thread(target=c.random_selector, args = (amenity_instances,) )
+        t = threading.Thread(target=c.random_selector, args=(amenity_instances,))
         t.start()
         time.sleep(0.1)
 
+    # Wait for all threads to finish
     for thread in threading.enumerate():
         if thread is not threading.main_thread():
             thread.join()
 
-    #save everything to sqlite once everything is done
+    # Final database save
     save_all_histories(clients)
 
 

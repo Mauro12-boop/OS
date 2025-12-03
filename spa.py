@@ -4,6 +4,7 @@ import time
 
 class Spa:
     def __init__(self):
+        # Holds spa resources and locks for sauna/massage access
         self.massage_rooms = None
         self.masseuses = None
         self.saunas = None
@@ -11,6 +12,7 @@ class Spa:
         self.massage_lock = threading.RLock()
 
     def enter_sauna(self,client):
+        # Tries to find an unoccupied sauna room
         with self.saunas_lock:
             sauna = None
             for i in self.saunas:
@@ -20,6 +22,7 @@ class Spa:
         if sauna:
             sauna.sauna_session(client,sauna.id)
             return
+        # No sauna available
         print(f"client {client.id} could not enter sauna all of them were full")
         client.log_activity(
             amenity="Spa Sauna",
@@ -30,6 +33,7 @@ class Spa:
         return
 
     def do_massage(self,client):
+        # Attempts to reserve both a room and a masseuse
         with self.massage_lock:
             room = None
             masseuse = None
@@ -48,6 +52,7 @@ class Spa:
                     break
 
             if room is None or masseuse is None:
+                # Could not start massage session
                 print(f"client {client.id} could not start a massage — no room or masseuse available")
                 client.log_activity(
                     amenity="Spa massage",
@@ -62,12 +67,14 @@ class Spa:
 
 class Masseuse:
     def __init__(self,id):
+        # Represents an employee who performs massages
         self.id = id
         self.is_available = True
         self.assigned_client = None
 
 class MassageRoom:
     def __init__(self,id,spa):
+        # Room state: occupancy and assigned client
         self.id = id
         self.is_occupied = False
         self.client = None
@@ -76,13 +83,15 @@ class MassageRoom:
 
 class MassageSession:
     def __init__(self, id,room, client,masseuse):
+        # Represents a single massage event
         self.id = id
         self.room = room
         self.client = client
         self.masseuse = masseuse
-        self.duration = 5 #this will be in seconds, and 30 as if it was a 30 minutes massage
+        self.duration = 5  # seconds representing a massage duration
 
     def start_session(self):
+        # Runs the massage, then frees room and masseuse
         print(f'client {self.client.id} has started a massage session with masseuse {self.masseuse.id} in room {self.room.id}')
         time.sleep(self.duration)
         with self.room.spa.massage_lock:
@@ -100,12 +109,14 @@ class MassageSession:
 
 class SaunaRoom:
     def __init__(self, id,spa):
+        # Simple room with occupancy state
         self.id = id
         self.is_occupied = False
         self.client = None
         self.spa = spa
 
     def sauna_session(self, client, room):
+        # Handles the sauna session lifecycle
         with self.spa.saunas_lock:
             self.is_occupied = True
             self.client = client
@@ -114,6 +125,7 @@ class SaunaRoom:
         self.leave_sauna(client, room)
 
     def leave_sauna(self,client,room):
+        # Ends session and frees the sauna
         with self.spa.saunas_lock:
             self.is_occupied = False
             self.client = None
@@ -125,12 +137,3 @@ class SaunaRoom:
             info=f"Sauna room {room}"
         )
         return
-
-
-
-
-
-
-
-
-
