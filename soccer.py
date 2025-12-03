@@ -80,11 +80,7 @@ class SoccerPitch:
                         for p in self.players:
                             th = threading.Thread(target=match.play, args=(p,))
                             th.start()
-
-                        # ---------------- FIX 3 ----------------
-                        # Reset BOTH teams after match
-                        # ----------------------------------------
-                        self.teamA = []   # FIX: previously NOT cleared
+                        self.teamA = []
                         self.teamB = []
                         self.players = []
 
@@ -108,9 +104,6 @@ class Match:
     def timer(self):
         t_end = time.time() + 10
 
-        # ---------------- FIX 4 ----------------
-        # Do not hog CPU — add sleep
-        # ----------------------------------------
         while time.time() < t_end:
             time.sleep(0.05)
 
@@ -122,10 +115,7 @@ class Match:
         print(f"The final score was {self.teamA_score} for team A and {self.teamB_score} for team B in match {self.match_id}")
 
         with self.pitch.match_counter_lock:
-            # ---------------- FIX 5 ----------------
-            # Synchronize previous_match with match_counter
-            # This prevents infinite loops in start_match()
-            # ----------------------------------------------
+
             self.pitch.previous_match = self.match_id
 
     def play(self, player):

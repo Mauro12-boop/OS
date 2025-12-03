@@ -60,10 +60,6 @@ class Client:
                 amenity_roulette = random.choice([1, 3, 5, 6, 8, 9, 12, 13])
             elif self.settings.raining == 0:
                 amenity_roulette = random.randint(1, 13)
-
-            # ←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←
-            # NEW: Safe execution of the selected amenity
-            # ←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←
             try:
                 if amenity_roulette == 1:
                     self.amenity_instance = amenity_instances[0]

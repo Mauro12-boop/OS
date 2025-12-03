@@ -4,6 +4,7 @@ import time
 
 class EquestrianClub:
     def __init__(self):
+        #Creation of the attributes tha will be coordinated by the equestrian facility
         self.horses = []
         self.showjumping_tracks = None
         self.dressage_tracks = None
@@ -11,7 +12,8 @@ class EquestrianClub:
         self.dressage_lock = threading.RLock()
         self.showjumping_lock = threading.RLock()
 
-    def ride_horse(self, client):
+
+    def ride_horse(self, client): # Function allows client to if he will do showjumping or dressage
         choice = random.randint(1, 2)
         if choice == 1:
             self.dressage_ride(client)
@@ -22,17 +24,14 @@ class EquestrianClub:
         horse = None
         track = None
 
-        # ---------------- FIX 1 ----------------
-        # If all tracks are full, track stays None. Must check immediately.
-        # ----------------------------------------
-        for i in self.dressage_tracks:
+        for i in self.dressage_tracks: #Checks if dressage tracks are available (below maximum capacity)
             with i.lock:
                 if i.capacity < 3:
                     i.capacity += 1
                     i.clients.append(client)
                     track = i
                     break
-        if track is None:  # FIX 1
+        if track is None:  #Loging of client activity saying he was not able to join the dressage tracks
             print(f'Client {client.id} could not find a dressage track')
             client.log_activity(
                 amenity="Equestrian dressage",
@@ -42,20 +41,16 @@ class EquestrianClub:
             )
             return
 
-        # ---------------- FIX 2 ----------------
-        # If no horse found, rollback track capacity
-        # ----------------------------------------
-        for h in self.horses:
+        for h in self.horses: #Checks for horse availability
             with h.lock:
                 if not h.being_used:
                     h.being_used = True
-                    h.assigned_client = client  # FIX 3: use consistent attribute
+                    h.assigned_client = client
                     horse = h
-                    track.horses.append(h)  # FIX 4: We must later remove this
+                    track.horses.append(h)
                     break
 
         if horse is None:
-            # ROLLBACK FIX
             with track.lock:
                 track.capacity -= 1
                 track.clients.remove(client)
@@ -151,10 +146,6 @@ class EquestrianSession:
         print(f'Client {self.client.id} has started a {type} session with horse {self.horse.id} in track {self.track.id}')
         time.sleep(self.duration)
 
-        # -------------- FIX 5 ----------------
-        # Remove horse from track.horses
-        # Reset assigned_client
-        # --------------------------------------
         with self.track.equestrianclub.dressage_lock:
             self.track.capacity -= 1
             self.track.clients.remove(self.client)
