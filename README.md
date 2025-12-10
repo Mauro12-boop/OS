@@ -8,18 +8,31 @@ Controller.py
 **The files below contain the codes for the amenitites:**
 
 Golf.py
+
 Padel.py
+
 administrativeoffice.py
+
 bowling.py
+
 cafeteria.py
+
 coworking.py
+
 equestrian.py
+
 gym.py
+
 locker_room.py
+
 resort.db
+
 soccer.py
+
 spa.py
+
 swimming_pool.py
+
 tennis.py
 
 
