@@ -1,7 +1,7 @@
 import sqlite3
 import matplotlib.pyplot as plt
 
-DB_PATH = "resort.db"   # change if your DB file has a different path/name
+DB_PATH = "resort.db"  # change if your DB file has a different path/name
 
 
 def get_tennis_court_usage(db_path=DB_PATH):
